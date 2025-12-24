@@ -91,17 +91,36 @@ class MainWindow(QMainWindow):
 
         try:
             found_dishes = []
-            target_loai = "Nước" if criteria["nuoc"] else "Khô"
+            
+            # 1. Xác định loại món từ checkbox/radio (Nước hoặc Khô)
+            target_loai = "Nước" if criteria.get("nuoc") else "Khô"
 
             for mon in DATA_MON_AN:
-                # Kiểm tra loại món (Nước/Khô)
-                if mon["loai"] == target_loai:
-                    # Nếu chọn "Cay", món đó phải có "Cay" trong danh sách vị
-                    if criteria["cay"]:
-                        if "Cay" in mon["vi"]:
-                            found_dishes.append(mon)
-                    else:
-                        found_dishes.append(mon)
+                # --- KIỂM TRA CÁC ĐIỀU KIỆN ---
+                
+                # Kiểm tra Loại (Nước/Khô)
+                if mon.get("loai") != target_loai:
+                    continue
+                
+                # Kiểm tra Tỉnh (Nếu người dùng có chọn tỉnh cụ thể)
+                # Giả sử criteria["tinh"] là "Tất cả" hoặc tên tỉnh cụ thể
+                if criteria.get("tinh") and criteria["tinh"] != "Tất cả":
+                    if mon.get("tinh") != criteria["tinh"]:
+                        continue
+
+                # Kiểm tra Mùa
+                if criteria.get("mua") and criteria["mua"] != "Tất cả":
+                    if mon.get("mua") != criteria["mua"]:
+                        continue
+
+                # Kiểm tra Vị (Cay, Chua, Ngọt,...)
+                # Giả sử criteria["vi"] là một chuỗi hoặc danh sách các vị người dùng muốn
+                if criteria.get("vi") and criteria["vi"] != "Tất cả":
+                    if criteria["vi"] not in mon.get("vi", []):
+                        continue
+                
+                # Nếu vượt qua tất cả các bộ lọc trên, thêm vào danh sách kết quả
+                found_dishes.append(mon)
             
             if not found_dishes:
                 no_res = QLabel("Không tìm thấy món ăn nào phù hợp với khẩu vị của bạn.")
