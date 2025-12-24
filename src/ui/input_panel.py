@@ -74,6 +74,17 @@ class InputPanel(QWidget):
                 border-radius: 8px; background: white; 
             }
         """)
+        # Thêm vào phần khởi tạo giao diện trong InputPanel
+        self.cbo_mua = QComboBox()
+        self.cbo_mua.addItems(["Tất cả các mùa", "Mùa nước nổi", "Mùa mưa", "Mùa hè", "Quanh năm"])
+        self.cbo_mua.setStyleSheet("""
+            QComboBox { padding: 10px; font-size: 16px; border: 2px solid #A5D6A7; 
+                border-radius: 8px; background: white; }
+        """)
+
+        # Thêm nhãn và widget vào layout
+        main_layout.addWidget(QLabel("📅 Chọn thời điểm du lịch:"))
+        main_layout.addWidget(self.cbo_mua)  
         
         location_lay.addWidget(loc_label)
         location_lay.addWidget(self.cbo_tinh)

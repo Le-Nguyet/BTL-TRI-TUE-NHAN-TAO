@@ -1,164 +1,121 @@
+import os
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton, 
-                             QCheckBox, QComboBox, QHBoxLayout, QFrame, QGridLayout, QGraphicsDropShadowEffect)
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor
+                             QScrollArea, QFrame, QGridLayout, QHBoxLayout)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 
-class InputPanel(QWidget):
-    submitted = Signal(dict)
-
+class ResultPanel(QWidget):
     def __init__(self):
         super().__init__()
-        # Thiết lập nền tổng thể xanh nhạt thanh khiết
-        self.setStyleSheet("background-color: #F9FBF9;") 
+        self.setStyleSheet("background-color: #F9FBF9;")
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(30, 20, 30, 30)
+
+        # Tiêu đề kết quả
+        self.title = QLabel("KẾT QUẢ TƯ VẤN ĐẶC SẢN")
+        self.title.setStyleSheet("font-size: 28px; font-weight: bold; color: #1B5E20; margin-bottom: 10px;")
+        self.layout.addWidget(self.title, alignment=Qt.AlignCenter)
+
+        # Vùng cuộn hiển thị danh sách món ăn
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setStyleSheet("border: none; background: transparent;")
         
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(50, 30, 50, 50)
-        main_layout.setSpacing(25)
-
-        # --- PHẦN TIÊU ĐỀ (BANNER) ---
-        header_frame = QFrame()
-        header_frame.setStyleSheet("""
-            QFrame {
-                background-color: #E8F5E9;
-                border-radius: 20px;
-                border: 1px solid #C8E6C9;
-            }
-        """)
-        header_lay = QVBoxLayout(header_frame)
-        header_lay.setContentsMargins(20, 30, 20, 30)
-
-        title = QLabel("KHÁM PHÁ ẨM THỰC MIỀN TÂY")
-        title.setStyleSheet("font-size: 36px; font-weight: 800; color: #1B5E20; font-family: 'Segoe UI';")
+        self.res_container = QWidget()
+        self.res_layout = QGridLayout(self.res_container)
+        self.res_layout.setSpacing(25)
         
-        subtitle = QLabel("Hệ chuyên gia tư vấn món ăn đặc sản Đồng bằng sông Cửu Long")
-        subtitle.setStyleSheet("font-size: 18px; color: #455A64; font-weight: 500;")
+        self.scroll.setWidget(self.res_container)
+        self.layout.addWidget(self.scroll)
+
+        # Thanh nút bấm điều hướng
+        bottom_layout = QHBoxLayout()
+        self.btn_back = QPushButton("🔍 TÌM KIẾM LẠI")
+        self.btn_exit = QPushButton("❌ THOÁT")
         
-        header_lay.addWidget(title, alignment=Qt.AlignCenter)
-        header_lay.addWidget(subtitle, alignment=Qt.AlignCenter)
-        main_layout.addWidget(header_frame)
-
-        # --- PHẦN THẺ LỰA CHỌN (SELECTION CARD) ---
-        card = QFrame()
-        card.setStyleSheet("background-color: white; border-radius: 25px; padding: 30px;")
+        btn_style = "padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px;"
+        self.btn_back.setStyleSheet(btn_style + "background-color: #2E7D32; color: white;")
+        self.btn_exit.setStyleSheet(btn_style + "background-color: #C62828; color: white;")
         
-        # Tạo hiệu ứng đổ bóng cho chuyên nghiệp
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
-        shadow.setXOffset(0)
-        shadow.setYOffset(10)
-        shadow.setColor(QColor(0, 0, 0, 30))
-        card.setGraphicsEffect(shadow)
-
-        card_layout = QVBoxLayout(card)
-        
-        prompt = QLabel("Bạn đang cảm thấy thế nào?")
-        prompt.setStyleSheet("font-size: 22px; font-weight: bold; color: #2E7D32; margin-bottom: 10px;")
-        card_layout.addWidget(prompt)
-
-        grid = QGridLayout()
-        grid.setSpacing(20)
-
-        # Định nghĩa Checkbox với CSS hiện đại và Tick xanh
-        chk_style = """
-            QCheckBox {
-                font-size: 18px;
-                padding: 15px;
-                background-color: #FAFAFA;
-                border: 2px solid #F0F0F0;
-                border-radius: 12px;
-                color: #37474F;
-            }
-            QCheckBox:hover {
-                background-color: #F1F8E9;
-                border: 2px solid #A5D6A7;
-            }
-            QCheckBox::indicator {
-                width: 28px;
-                height: 28px;
-                border: 2px solid #CFD8DC;
-                border-radius: 8px;
-                background-color: white;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #2E7D32;
-                border: 2px solid #2E7D32;
-                image: url(https://img.icons8.com/material-sharp/24/ffffff/checkmark.png);
-            }
-        """
-
-        self.chk_nuoc = QCheckBox("🍲 Món có nước (Lẩu, bún...)")
-        self.chk_cay = QCheckBox("🌶️ Thích vị cay nồng")
-        self.chk_beo = QCheckBox("🥥 Thích vị béo (Cốt dừa...)")
-        self.chk_ngot = QCheckBox("🍰 Món ngọt / Bánh đặc sản")
-
-        checkboxes = [self.chk_nuoc, self.chk_cay, self.chk_beo, self.chk_ngot]
-        for i, chk in enumerate(checkboxes):
-            chk.setStyleSheet(chk_style)
-            chk.setCursor(Qt.PointingHandCursor)
-            grid.addWidget(chk, i // 2, i % 2)
-
-        card_layout.addLayout(grid)
-        card_layout.addSpacing(20)
-
-        # Địa phương
-        loc_label = QLabel("📍 Bạn muốn tìm đặc sản tại tỉnh nào?")
-        loc_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #2E7D32;")
-        card_layout.addWidget(loc_label)
-
-        self.cbo_tinh = QComboBox()
-        self.cbo_tinh.addItems([
-            "Tất cả các tỉnh", "An Giang", "Bạc Liêu", "Bến Tre", "Cần Thơ", 
-            "Đồng Tháp", "Kiên Giang", "Long An", "Sóc Trăng", "Tiền Giang", "Trà Vinh"
-        ])
-        self.cbo_tinh.setStyleSheet("""
-            QComboBox {
-                padding: 15px; font-size: 18px; border: 2px solid #E0E0E0;
-                border-radius: 12px; background: white; color: #455A64;
-            }
-            QComboBox:hover { border: 2px solid #A5D6A7; }
-        """)
-        card_layout.addWidget(self.cbo_tinh)
-        
-        main_layout.addWidget(card)
-
-        # --- HÀNH ĐỘNG (ACTIONS) ---
-        actions_layout = QHBoxLayout()
-        
-        # Sửa lỗi AttributeError: định nghĩa self.btn_back rõ ràng
-        self.btn_back = QPushButton("← QUAY LẠI")
         self.btn_back.setCursor(Qt.PointingHandCursor)
-        self.btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: transparent; color: #607D8B; font-size: 18px;
-                font-weight: bold; padding: 15px; border: none;
-            }
-            QPushButton:hover { color: #2E7D32; }
-        """)
+        self.btn_exit.setCursor(Qt.PointingHandCursor)
 
-        self.btn_go = QPushButton("🔍 GỢI Ý MÓN NGON")
-        self.btn_go.setCursor(Qt.PointingHandCursor)
-        self.btn_go.setStyleSheet("""
-            QPushButton {
-                background-color: #2E7D32; color: white; font-size: 20px;
-                font-weight: bold; padding: 20px 60px; border-radius: 15px;
-            }
-            QPushButton:hover { background-color: #1B5E20; }
-        """)
+        bottom_layout.addStretch()
+        bottom_layout.addWidget(self.btn_back)
+        bottom_layout.addWidget(self.btn_exit)
+        bottom_layout.addStretch()
+        self.layout.addLayout(bottom_layout)
 
-        actions_layout.addWidget(self.btn_back)
-        actions_layout.addStretch()
-        actions_layout.addWidget(self.btn_go)
+    def clear_results(self):
+        """Xóa trắng danh sách hiển thị cũ"""
+        while self.res_layout.count():
+            item = self.res_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+    def show_dishes(self, dishes):
+        """Hiển thị danh sách món ăn dưới dạng thẻ ảnh"""
+        self.clear_results()
         
-        main_layout.addLayout(actions_layout)
+        if not dishes:
+            no_res = QLabel("Rất tiếc, không tìm thấy món ăn nào phù hợp với yêu cầu của bạn.")
+            no_res.setStyleSheet("font-size: 18px; color: #757575; font-style: italic;")
+            self.res_layout.addWidget(no_res, 0, 0, alignment=Qt.AlignCenter)
+            return
 
-        # Kết nối sự kiện bên trong panel nếu cần, hoặc main_window sẽ kết nối
-        self.btn_go.clicked.connect(self.send_data)
+        for i, mon in enumerate(dishes):
+            card = self.create_dish_card(mon)
+            self.res_layout.addWidget(card, i // 2, i % 2)
 
-    def send_data(self):
-        self.submitted.emit({
-            "nuoc": self.chk_nuoc.isChecked(),
-            "cay": self.chk_cay.isChecked(),
-            "beo": self.chk_beo.isChecked(),
-            "ngot": self.chk_ngot.isChecked(),
-            "tinh": self.cbo_tinh.currentText()
-        })
+    def create_dish_card(self, mon):
+        """Tạo thẻ món ăn với hình ảnh và mô tả"""
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background-color: white; border-radius: 15px;
+                border: 1px solid #E0E0E0;
+            }
+            QFrame:hover { border: 2px solid #A5D6A7; background-color: #F1F8E9; }
+        """)
+        
+        card_lay = QVBoxLayout(card)
+        card_lay.setContentsMargins(15, 15, 15, 15)
+
+        # 1. Hiển thị hình ảnh từ assets/images/
+        img_label = QLabel()
+        img_label.setFixedSize(300, 180)
+        img_label.setScaledContents(True)
+        img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEE;")
+        
+        # Lấy đường dẫn ảnh từ DATA_MON_AN
+        base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        img_file = mon.get('hinh_anh', 'default.png')
+        img_path = os.path.join(base_path, "assets", "images", img_file)
+        
+        pixmap = QPixmap(img_path)
+        if pixmap.isNull():
+            img_label.setText("🖼️ Hình ảnh đang cập nhật")
+            img_label.setAlignment(Qt.AlignCenter)
+            img_label.setStyleSheet("background: #F5F5F5; color: #AAA; border-radius: 10px;")
+        else:
+            img_label.setPixmap(pixmap)
+
+        # 2. Thông tin văn bản
+        name = QLabel(mon['ten'].upper())
+        name.setStyleSheet("font-size: 18px; font-weight: bold; color: #1B5E20; border: none;")
+        name.setWordWrap(True)
+
+        location = QLabel(f"📍 {mon['tinh']}")
+        location.setStyleSheet("font-weight: bold; color: #2E7D32; font-size: 14px; border: none;")
+
+        desc = QLabel(mon['mo_ta'])
+        desc.setWordWrap(True)
+        desc.setStyleSheet("color: #455A64; font-size: 13px; border: none; line-height: 18px;")
+
+        # Thêm các thành phần vào thẻ
+        card_lay.addWidget(img_label, alignment=Qt.AlignCenter)
+        card_lay.addWidget(name)
+        card_lay.addWidget(location)
+        card_lay.addWidget(desc)
+        
+        return card
