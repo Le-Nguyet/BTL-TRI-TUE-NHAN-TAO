@@ -123,6 +123,7 @@ class InputPanel(QWidget):
             "cay": self.chk_cay.isChecked(),
             "beo": self.chk_beo.isChecked(),
             "ngot": self.chk_ngot.isChecked(),
-            "tinh": self.cbo_tinh.currentText()
+            "tinh": self.cbo_tinh.currentText(),
+            "mua": self.cbo_mua.currentText()
         }
         self.submitted.emit(data)
