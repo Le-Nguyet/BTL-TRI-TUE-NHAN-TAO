@@ -1,14 +1,14 @@
 import os
-import json
-from PySide6.QtWidgets import (
-    QMainWindow, QStackedWidget, QWidget, 
-    QVBoxLayout, QPushButton, QLabel 
-)
+from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QApplication
 from PySide6.QtGui import QPixmap, QPainter
 from PySide6.QtCore import Qt
 
+# Import Panels
 from src.ui.input_panel import InputPanel
 from src.ui.result_panel import ResultPanel
+
+# --- THAY ĐỔI QUAN TRỌNG: Import dữ liệu từ file python ---
+from src.logic.knowledge_base import DATA_MON_AN 
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -19,8 +19,10 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        # Khởi tạo các trang
+        # Giao diện Trang chủ
         self.home = QWidget()
+        self.home.paintEvent = self._paint_home_background 
+        
         self.input_p = InputPanel()
         self.result_p = ResultPanel()
 
@@ -35,47 +37,64 @@ class MainWindow(QMainWindow):
         lay = QVBoxLayout(self.home)
         self.btn_start = QPushButton("BẮT ĐẦU TƯ VẤN")
         self.btn_start.setFixedSize(250, 60)
-        self.btn_start.setStyleSheet("background: white; font-weight: bold; border-radius: 10px;")
+        self.btn_start.setStyleSheet("""
+            QPushButton {
+                background-color: #2E7D32; color: white; font-weight: bold; 
+                font-size: 18px; border-radius: 15px; border: 2px solid white;
+            }
+            QPushButton:hover { background-color: #1B5E20; }
+        """)
+        lay.addStretch()
         lay.addWidget(self.btn_start, alignment=Qt.AlignCenter)
+        lay.addStretch()
 
-        # Đường dẫn ảnh nền
-        base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.bg = QPixmap(os.path.join(base, "assets", "images", "Trang chủ.png"))
+        # Load ảnh nền trang chủ 
+        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        img_path = os.path.join(base, "assets", "images", "Trang chủ.png")
+        self.bg_pixmap = QPixmap(img_path)
+
+    def _paint_home_background(self, event):
+        if not self.bg_pixmap.isNull():
+            painter = QPainter(self.home)
+            painter.drawPixmap(self.home.rect(), self.bg_pixmap.scaled(
+                self.home.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation
+            ))
 
     def _setup_connections(self):
         self.btn_start.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         self.result_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         self.input_p.submitted.connect(self.process_logic)
+        self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
 
     def process_logic(self, criteria):
-        """Hàm suy diễn chính"""
+        """Sử dụng trực tiếp DATA_MON_AN từ knowledge_base.py"""
         self.result_p.clear_results()
-        base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        json_path = os.path.join(base, "assets", "data", "knowledge_base.json")
 
         try:
-            with open(json_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            # Logic lọc món ăn từ biến DATA_MON_AN
+            found_dishes = []
             
-            found = False
-            for mon in data:
-                # Logic lọc: Khớp loại và Vị
-                if mon["loai"] == criteria["loai"]:
-                    # Nếu chọn Cay thì món phải có Cay trong list 'vi'
-                    if not criteria["cay"] or "Cay" in mon["vi"]:
-                        self.result_p.add_dish_card(mon)
-                        found = True
-            
-            if not found:
-                self.result_p.res_layout.insertWidget(0, QLabel("Không có món nào phù hợp."))
-            
-            self.stack.setIndex(2) # Chuyển sang trang kết quả
-        except Exception as e:
-            print(f"Lỗi: {e}")
+            # Lưu ý: criteria['nuoc'] là True/False từ Checkbox 
+            target_loai = "Nước" if criteria["nuoc"] else "Khô"
 
-    def paintEvent(self, event):
-        """Vẽ ảnh nền trang chủ"""
-        if self.stack.currentIndex() == 0 and not self.bg.isNull():
-            p = QPainter(self)
-            p.drawPixmap(self.rect(), self.bg.scaled(self.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation))
+            for mon in DATA_MON_AN:
+                # Kiểm tra loại món (Nước/Khô)
+                if mon["loai"] == target_loai:
+                    # Nếu chọn "Cay", món đó phải có "Cay" trong danh sách vị
+                    if criteria["cay"]:
+                        if "Cay" in mon["vi"]:
+                            found_dishes.append(mon)
+                    else:
+                        found_dishes.append(mon)
+            
+            if not found_dishes:
+                no_res = QLabel("Không tìm thấy món ăn nào phù hợp với khẩu vị của bạn.")
+                no_res.setAlignment(Qt.AlignCenter)
+                self.result_p.res_layout.insertWidget(0, no_res)
+            else:
+                self.result_p.show_dishes(found_dishes)
+            
+            self.stack.setCurrentIndex(2) 
+        except Exception as e:
+            print(f"Lỗi xử lý logic: {e}")
