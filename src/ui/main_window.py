@@ -107,23 +107,34 @@ class MainWindow(QMainWindow):
             target_loai = "Nước" if criteria.get("nuoc") else "Khô"
 
             for mon in DATA_MON_AN:
-                # 1. Lọc theo Loại (Nước/Khô)
-                if mon["loai"] != target_loai:
+                # 1. Lọc Tỉnh
+                 if criteria["tinh"] != "Tất cả" and mon["tinh"] != criteria["tinh"]:
+                     continue
+            
+            # 2. Lọc Mùa
+                 if criteria["mua"] != "Tất cả" and mon["mua"] != criteria["mua"]:
                     continue
-                
-                # 2. Lọc theo Tỉnh (Nếu có chọn tỉnh trên bản đồ)
-                if criteria.get("tinh") != "Tất cả" and mon["tinh"] != criteria["tinh"]:
-                    continue
+            
+            # 3. Lọc Loại món ăn
+                 if criteria["loai"] != "Tất cả" and mon["loai"] != criteria["loai"]:
+                     continue
 
-                # 3. Lọc theo Vị (Kiểm tra Checkbox hoặc ComboBox)
-                if criteria.get("cay") and "Cay" not in mon["vi"]:
-                    continue
-                
-                # 4. Lọc theo Mùa
-                if criteria.get("mua") != "Tất cả" and mon["mua"] != criteria["mua"]:
-                    continue
+            # 4. Lọc Nguyên liệu chính
+                 if criteria["nlc"] != "Tất cả" and mon["nlc"] != criteria["nlc"]:
+                     continue
 
-                found_dishes.append(mon)
+            # 5. Lọc Nguyên liệu phụ
+                 if criteria["nlp"] != "Tất cả" and mon["nlp"] != criteria["nlp"]:
+                      continue
+
+            # 6. Lọc Khẩu vị (Chỉ cần món ăn có CHỨA ít nhất 1 vị người dùng chọn)
+                 if criteria["vi"]:
+                # Tìm phần giao giữa vị người dùng chọn và vị của món ăn
+                    match_vi = any(v in mon["vi"] for v in criteria["vi"])
+                    if not match_vi:
+                        continue
+
+                 found_dishes.append(mon)
             
             # Hiển thị kết quả
             if not found_dishes:

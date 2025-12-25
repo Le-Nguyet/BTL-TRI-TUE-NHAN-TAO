@@ -85,8 +85,8 @@ class InputPanel(QWidget):
         self.chk_dang = QCheckBox("☕ Đắng (V8)")
         grid_vi.addWidget(self.chk_cay, 0, 0); grid_vi.addWidget(self.chk_ngot, 0, 1)
         grid_vi.addWidget(self.chk_chua, 1, 0); grid_vi.addWidget(self.chk_man, 1, 1)
-        grid_vi.addWidget(self.chk_beo, 1, 0); grid_vi.addWidget(self.chk_thanh, 1, 1)
-        grid_vi.addWidget(self.chk_bui, 1, 0); grid_vi.addWidget(self.chk_dang, 1, 1)
+        grid_vi.addWidget(self.chk_beo, 2, 0); grid_vi.addWidget(self.chk_thanh, 2, 1)
+        grid_vi.addWidget(self.chk_bui, 3, 0); grid_vi.addWidget(self.chk_dang, 3, 1)
         f_lay.addLayout(grid_vi)
 
         f_lay.addStretch()
@@ -135,18 +135,23 @@ class InputPanel(QWidget):
         self.label_tinh.setText(f"📍 ĐÃ CHỌN: {name.upper()}")
 
     def _send_data(self):
+        # Thu thập danh sách các vị đã tích chọn
+        selected_vi = []
+        if self.chk_cay.isChecked(): selected_vi.append("Cay")
+        if self.chk_ngot.isChecked(): selected_vi.append("Ngọt")
+        if self.chk_chua.isChecked(): selected_vi.append("Chua")
+        if self.chk_man.isChecked(): selected_vi.append("Mặn")
+        if self.chk_beo.isChecked(): selected_vi.append("Béo")
+        if self.chk_thanh.isChecked(): selected_vi.append("Thanh")
+        if self.chk_bui.isChecked(): selected_vi.append("Bùi")
+        if self.chk_dang.isChecked(): selected_vi.append("Đắng")
+
         data = {
             "tinh": self.selected_tinh, 
-            "nuoc": self.chk_nuoc.isChecked(),
-            "cay": self.chk_cay.isChecked(), 
-            "ngot": self.chk_ngot.isChecked(), 
-            "chua": self.chk_chua.isChecked(),
-            "man": self.chk_man.isChecked(),
-            "beo": self.chk_beo.isChecked(),
-            "thanh": self.chk_thanh.isChecked(),
-            "bui": self.chk_bui.isChecked(),
-            "dang": self.chk_dang.isChecked(),
-            "vi": self.combo_vi.currentText(),
-            "mua": self.combo_mua.currentText()
+            "mua": self.combo_mua.currentText(),
+            "loai": self.combo_loai.currentText(),
+            "nlc": self.combo_nlc.currentText(), # Nguyên liệu chính
+            "nlp": self.combo_nlp.currentText(), # Nguyên liệu phụ
+            "vi": selected_vi
         }
         self.submitted.emit(data)
