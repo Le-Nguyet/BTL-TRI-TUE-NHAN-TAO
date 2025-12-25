@@ -12,21 +12,15 @@ MAPPER = {
 }
 
 def infer_dishes(criteria, data_mon_an):
-    """
-    criteria: dict chứa {tinh, mua, loai, vi:[]} từ giao diện
-    data_mon_an: danh sách các món ăn trong knowledge_base.py
-    """
     found_ids = set()
-    
-    # Tìm đường dẫn file raw_rules.txt (nằm ở thư mục gốc)
-    # Nếu file nằm cùng cấp với main.py, ta dùng đường dẫn tương đối
-    rules_path = "raw_rules.txt"
+    # Lấy đường dẫn tuyệt đối đến file raw_rules.txt
+    base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    rules_path = os.path.normpath(os.path.join(base_path, "raw_rules.txt"))
     
     if not os.path.exists(rules_path):
-        print(f"Lỗi: Không tìm thấy file {rules_path}")
+        print(f"LỖI: Không tìm thấy file tại {rules_path}")
         return []
 
-    # Regex bắt 6 yếu tố và ID kết quả (D1, D2...)
     pattern = r"(T\d+)\s*\^\s*(L\d+)\s*\^\s*(M\d+)\s*\^\s*(N\d+)\s*\^\s*(P\d+)\s*\^\s*(V\d+)\s*=>\s*(D\d+)"
 
     with open(rules_path, "r", encoding="utf-8") as f:
@@ -34,30 +28,18 @@ def infer_dishes(criteria, data_mon_an):
             match = re.search(pattern, line)
             if match:
                 t, l, m, n, p, v, d = match.groups()
-
-                # TIẾN HÀNH SO KHỚP (Dùng MAPPER để dịch mã sang chữ)
-                # 1. Kiểm tra Tỉnh
+                
+                # So khớp logic (Chuyển mã T1, L1... sang chữ tiếng Việt qua MAPPER)
                 match_tinh = (criteria['tinh'] == "Tất cả" or MAPPER.get(t) == criteria['tinh'])
-                
-                # 2. Kiểm tra Mùa
                 match_mua = (criteria['mua'] == "Tất cả" or MAPPER.get(m) == criteria['mua'])
-                
-                # 3. Kiểm tra Loại món
                 match_loai = (criteria['loai'] == "Tất cả" or MAPPER.get(l) == criteria['loai'])
-
-                # 4. Kiểm tra Vị (Nếu người dùng chọn ít nhất 1 vị trùng với vị trong luật)
-                # MAPPER.get(v) trả về 'Chua', criteria['vi'] là danh sách ['Chua', 'Cay']
+                
                 match_vi = False
-                if not criteria['vi']: # Nếu không chọn vị nào thì mặc định khớp
+                if not criteria['vi'] or MAPPER.get(v) in criteria['vi']:
                     match_vi = True
-                else:
-                    if MAPPER.get(v) in criteria['vi']:
-                        match_vi = True
 
-                # Nếu tất cả các vế IF đều đúng
                 if match_tinh and match_mua and match_loai and match_vi:
                     found_ids.add(d)
 
-    # Lấy thông tin chi tiết món ăn từ DATA_MON_AN dựa trên list ID vừa tìm được
-    results = [mon for mon in data_mon_an if mon['id'] in found_ids]
-    return results
+    # TRẢ VỀ ĐỐI TƯỢNG ĐẦY ĐỦ (Cần thiết để hiện ảnh và mô tả)
+    return [mon for mon in data_mon_an if mon['id'] in found_ids]

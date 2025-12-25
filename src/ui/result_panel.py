@@ -81,24 +81,24 @@ class ResultPanel(QWidget):
         card_lay = QVBoxLayout(card)
         card_lay.setContentsMargins(15, 15, 15, 15)
 
-        # 1. Hiển thị hình ảnh từ assets/images/
+        # 1. HIỂN THỊ HÌNH ẢNH
         img_label = QLabel()
-        img_label.setFixedSize(300, 180)
+        img_label.setFixedSize(450, 280)
         img_label.setScaledContents(True)
-        img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEE;")
-        
-        # Lấy đường dẫn ảnh từ DATA_MON_AN
-        base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        img_file = mon.get('hinh_anh', 'default.png')
-        img_path = os.path.join(base_path, "assets", "images", img_file)
-        
+
+        # Đường dẫn tuyệt đối tới thư mục assets/images
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        img_name = mon.get('hinh_anh', 'default.png') # Lấy từ knowledge_base.py
+        img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", img_name))
+
         pixmap = QPixmap(img_path)
-        if pixmap.isNull():
-            img_label.setText("🖼️ Hình ảnh đang cập nhật")
-            img_label.setAlignment(Qt.AlignCenter)
-            img_label.setStyleSheet("background: #F5F5F5; color: #AAA; border-radius: 10px;")
-        else:
+        if not pixmap.isNull():
             img_label.setPixmap(pixmap)
+        else:
+            img_label.setText(f"🖼️ Thiếu ảnh: {img_name}") # Hiện tên file lỗi để dễ kiểm tra
+            img_label.setAlignment(Qt.AlignCenter)
+
+        card_lay.addWidget(img_label)
 
         # 2. Thông tin văn bản
         name = QLabel(mon['ten'].upper())

@@ -99,16 +99,19 @@ class MainWindow(QMainWindow):
             self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
 
     def _on_data_submitted(self, criteria):
+        # 1. Chuyển trang và xóa kết quả cũ
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
-        # Gọi bộ máy suy diễn từ tập luật .txt
-        from src.logic.inference_engine import infer_dishes
+        # 2. Gọi bộ máy suy diễn
         results = infer_dishes(criteria, DATA_MON_AN)
         
+        # 3. Kiểm tra kết quả
         if not results:
-            self.result_p.show_no_result() # Bạn nên thêm hàm này trong ResultPanel
+            # Nếu không có kết quả, phải gọi hàm hiện thông báo lỗi
+            self.result_p.show_no_result()
         else:
+            # Nếu có, duyệt và thêm từng card món ăn
             for mon in results:
                 self.result_p.add_result_card(mon)
         
