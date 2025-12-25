@@ -1,5 +1,4 @@
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QPushButton, QCheckBox, QComboBox, QFrame, QGridLayout)
+from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, Signal
 from .map_widget import MekongDeltaMap
 
@@ -12,9 +11,9 @@ class InputPanel(QWidget):
         
         # Layout chính của toàn bộ Panel (Dọc)
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 10, 20, 20)
+        main_layout.setContentsMargins(20, 10, 20, 10) # Giảm lề dưới một chút cho Footer
 
-        # --- 1. TIÊU ĐỀ (Phía trên cùng) ---
+        # --- 1. TIÊU ĐỀ ---
         header = QFrame()
         h_lay = QVBoxLayout(header)
         title = QLabel("KHÁM PHÁ ẨM THỰC MIỀN TÂY")
@@ -24,11 +23,11 @@ class InputPanel(QWidget):
         h_lay.addWidget(subtitle, alignment=Qt.AlignCenter)
         main_layout.addWidget(header)
 
-        # --- 2. VÙNG NỘI DUNG CHÍNH (Layout hàng ngang) ---
+        # --- 2. VÙNG NỘI DUNG CHÍNH ---
         content_layout = QHBoxLayout()
         content_layout.setSpacing(20)
 
-        # --- BÊN TRÁI: BẢN ĐỒ ---
+        # BÊN TRÁI: BẢN ĐỒ
         map_container = QFrame()
         map_v_lay = QVBoxLayout(map_container)
         
@@ -37,59 +36,52 @@ class InputPanel(QWidget):
         map_v_lay.addWidget(self.label_tinh)
 
         self.map_selector = MekongDeltaMap()
-        # Cho phép bản đồ mở rộng linh hoạt
         self.map_selector.setMinimumSize(600, 600) 
         self.map_selector.provinceSelected.connect(self._on_province_selected)
         map_v_lay.addWidget(self.map_selector)
         
-        content_layout.addWidget(map_container, stretch=2) # Chiếm 2 phần không gian
+        content_layout.addWidget(map_container, stretch=2)
 
-        # --- BÊN PHẢI: BẢNG LỰA CHỌN ---
+        # BÊN PHẢI: CÁC BƯỚC LỰA CHỌN (BƯỚC 2 -> 5)
         filter_frame = QFrame()
         filter_frame.setStyleSheet("background: white; border-radius: 12px; border: 1px solid #E0E0E0;")
-        filter_v_lay = QVBoxLayout(filter_frame)
-        filter_v_lay.setContentsMargins(20, 20, 20, 20)
-        filter_v_lay.setSpacing(15)
-
-        filter_title = QLabel("🍴 BƯỚC 2: CHỌN KHẨU VỊ")
-        filter_title.setStyleSheet("font-weight: bold; font-size: 14px; border: none; color: #2E7D32;")
-        filter_v_lay.addWidget(filter_title)
-
-        # Sử dụng QGridLayout để xếp các lựa chọn gọn gàng theo chiều dọc bên phải
-        grid = QGridLayout()
-        grid.setSpacing(10)
-
-        self.chk_nuoc = QCheckBox("🍲 Món có nước")
-        self.chk_cay = QCheckBox("🌶️ Vị cay")
-        self.chk_beo = QCheckBox("🥥 Vị béo")
-        self.chk_ngot = QCheckBox("🍰 Món ngọt")
-        
-        # Xếp các checkbox thành 2 cột
-        grid.addWidget(self.chk_nuoc, 0, 0)
-        grid.addWidget(self.chk_cay, 0, 1)
-        grid.addWidget(self.chk_beo, 1, 0)
-        grid.addWidget(self.chk_ngot, 1, 1)
-        
-        filter_v_lay.addLayout(grid)
-
-        # ComboBoxes xếp dọc
-        filter_v_lay.addWidget(QLabel("👅 Vị chủ đạo:"))
-        self.combo_vi = QComboBox()
-        self.combo_vi.addItems(["Tất cả", "Cay", "Chua", "Ngọt", "Mặn", "Đậm đà"])
-        filter_v_lay.addWidget(self.combo_vi)
-
-        filter_v_lay.addWidget(QLabel("🍂 Mùa ngon nhất:"))
+        f_lay = QVBoxLayout(filter_frame)
+        f_lay.setSpacing(12)
+        # BƯỚC 2: CHỌN MÙA
+        f_lay.addWidget(QLabel("<b>🍂 BƯỚC 2: CHỌN MÙA</b>"))
         self.combo_mua = QComboBox()
-        self.combo_mua.addItems(["Tất cả", "Mùa mưa", "Mùa nắng", "Mùa nước nổi", "Quanh năm"])
-        filter_v_lay.addWidget(self.combo_mua)
+        self.combo_mua.addItems(["Tất cả", "Mùa nước nổi", "Mùa mưa", "Mùa nắng", "Quanh năm"])
+        f_lay.addWidget(self.combo_mua)
 
-        filter_v_lay.addStretch() # Đẩy các thành phần lên trên
+        # BƯỚC 3: CHỌN LOẠI MÓN ĂN
+        f_lay.addWidget(QLabel("<b>🍲 BƯỚC 3: LOẠI MÓN ĂN</b>"))
+        self.combo_loai = QComboBox()
+        self.combo_loai.addItems(["Tất cả", "Món nước (Lẩu, bún...)", "Món khô (Bánh, gỏi...)", "Trái cây/Ăn vặt"])
+        f_lay.addWidget(self.combo_loai)
 
-        content_layout.addWidget(filter_frame, stretch=1) # Chiếm 1 phần không gian
-        
+        # BƯỚC 4: CHỌN NGUYÊN LIỆU (Dựa trên đặc sản ĐBSCL)
+        f_lay.addWidget(QLabel("<b>🐟 BƯỚC 4: NGUYÊN LIỆU CHÍNH</b>"))
+        self.combo_nguyen_lieu = QComboBox()
+        # Dữ liệu nguyên liệu phổ biến từ file báo cáo
+        self.combo_nguyen_lieu.addItems(["Tất cả", "Cá (Lóc, Linh, Sặc...)", "Tôm/Cua", "Thịt Heo/Bò", "Côn trùng", "Thực vật (Sen, Thốt nốt...)"])
+        f_lay.addWidget(self.combo_nguyen_lieu)
+
+        # BƯỚC 5: CHỌN KHẨU VỊ
+        f_lay.addWidget(QLabel("<b>👅 BƯỚC 5: CHỌN KHẨU VỊ</b>"))
+        grid_vi = QGridLayout()
+        self.chk_cay = QCheckBox("🌶️ Cay")
+        self.chk_beo = QCheckBox("🥥 Béo")
+        self.chk_chua = QCheckBox("🍋 Chua")
+        self.chk_ngot = QCheckBox("🍰 Ngọt")
+        grid_vi.addWidget(self.chk_cay, 0, 0); grid_vi.addWidget(self.chk_beo, 0, 1)
+        grid_vi.addWidget(self.chk_chua, 1, 0); grid_vi.addWidget(self.chk_ngot, 1, 1)
+        f_lay.addLayout(grid_vi)
+
+        f_lay.addStretch()
+        content_layout.addWidget(filter_frame, stretch=1)
         main_layout.addLayout(content_layout)
 
-        # --- 3. HÀNG NÚT BẤM (Phía dưới cùng) ---
+        # --- 3. HÀNG NÚT BẤM ---
         btn_lay = QHBoxLayout()
         self.btn_back = QPushButton("⬅ QUAY LẠI")
         self.btn_back.setCursor(Qt.PointingHandCursor)
@@ -113,6 +105,14 @@ class InputPanel(QWidget):
         btn_lay.addStretch()
         btn_lay.addWidget(self.btn_submit)
         main_layout.addLayout(btn_lay)
+
+        # --- 4. THÔNG TIN TÁC GIẢ (Footer) ---
+        author_lay = QHBoxLayout()
+        author_lbl = QLabel("© 2025 - Tác giả: [Thu Nguyệt & Tuấn Dinh] | ĐHSTIN23B | Dự án BTL Trí Tuệ Nhân Tạo")
+        author_lbl.setStyleSheet("color: #7F8C8D; font-size: 11px; font-style: italic;")
+        author_lay.addStretch()
+        author_lay.addWidget(author_lbl)
+        main_layout.addLayout(author_lay)
 
         # Kết nối sự kiện
         self.selected_tinh = "Tất cả"
