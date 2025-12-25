@@ -88,8 +88,15 @@ class ResultPanel(QWidget):
 
         # Đường dẫn tuyệt đối tới thư mục assets/images
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        img_name = mon.get('hinh_anh', 'default.png') # Lấy từ knowledge_base.py
+        img_name = mon.get('hinh_anh', 'default.png')
         img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", img_name))
+
+        pixmap = QPixmap(img_path)
+        if not pixmap.isNull():
+            img_label.setPixmap(pixmap)
+        else:
+            print(f"Không tìm thấy ảnh: {img_path}") # Log lỗi ra màn hình đen để kiểm tra
+            img_label.setText("🖼️ Hình ảnh đang cập nhật")
 
         pixmap = QPixmap(img_path)
         if not pixmap.isNull():

@@ -66,9 +66,9 @@ class MainWindow(QMainWindow):
         lay.addWidget(self.btn_start, alignment=Qt.AlignCenter)
         lay.addStretch(5)
 
-        # Load ảnh nền trang chủ
+   # Load ảnh nền trang chủ (Sửa đường dẫn chuẩn)
         base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        img_path = os.path.join(base, "assets", "images", "Trang chủ.png")
+        img_path = os.path.normpath(os.path.join(base, "assets", "images", "Trang chủ.png"))
         self.bg_pixmap = QPixmap(img_path)
 
     def _paint_home_background(self, event):
@@ -91,46 +91,45 @@ class MainWindow(QMainWindow):
         if hasattr(self.result_p, 'btn_back'):
             self.result_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         
-        # Khi nhấn nút "Xem gợi ý" ở InputPanel
-        self.input_p.submitted.connect(self._on_data_submitted)
-        
-        # Nút thoát
+        # Nút thoát ứng dụng
         if hasattr(self.result_p, 'btn_exit'):
             self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
+            
+        # Khi nhấn nút "Xem gợi ý" ở InputPanel
+        self.input_p.submitted.connect(self._on_data_submitted)
 
     def _on_data_submitted(self, criteria):
-        # 1. Chuyển trang và xóa kết quả cũ
+        """Xử lý khi nhận dữ liệu từ InputPanel và hiển thị kết quả"""
+        # 1. Chuyển sang trang kết quả và dọn dẹp các kết quả cũ
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
         # 2. Gọi bộ máy suy diễn
+        # Đảm bảo infer_dishes trả về danh sách đối tượng món ăn từ knowledge_base
         results = infer_dishes(criteria, DATA_MON_AN)
         
-        # 3. Kiểm tra kết quả
+        # 3. Xử lý hiển thị kết quả
         if not results:
-            # Nếu không có kết quả, phải gọi hàm hiện thông báo lỗi
-            self.result_p.show_no_result()
+            # Nếu không có kết quả phù hợp
+            if hasattr(self.result_p, 'show_no_result'):
+                self.result_p.show_no_result()
+            else:
+                lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.")
+                lb_empty.setStyleSheet("font-size: 18px; color: #7f8c8d; font-weight: bold; margin-top: 50px;")
+                lb_empty.setAlignment(Qt.AlignCenter)
+                self.result_p.res_layout.addWidget(lb_empty, 0, 0)
         else:
-            # Nếu có, duyệt và thêm từng card món ăn
+            # Duyệt qua danh sách kết quả và thêm thẻ món ăn vào giao diện
             for mon in results:
-                self.result_p.add_result_card(mon)
-        
-        # 4. Hiển thị lên màn hình
-        if not results:
-            lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
-            lb_empty.setStyleSheet("font-size: 18px; color: #7f8c8d; font-weight: bold; margin-top: 50px;")
-            lb_empty.setAlignment(Qt.AlignCenter)
-            self.result_p.res_layout.addWidget(lb_empty, 0, 0)
-        else:
-            for index, mon in enumerate(results):
-                # Gọi hàm vẽ Card món ăn (Hàm này có xử lý load ảnh D1.png, D2.png...)
+                # 'mon' là dictionary chứa đầy đủ: ten, hinh_anh, mo_ta, tinh...
                 self.result_p.add_result_card(mon)
 
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""
         if event.key() == Qt.Key_F11:
-            if self.isFullScreen(): self.showMaximized()
-            else: self.showFullScreen()
+            if self.isFullScreen(): 
+                self.showMaximized()
+            else: 
+                self.showFullScreen()
         elif event.key() == Qt.Key_Escape and self.isFullScreen():
             self.showMaximized()
-     
