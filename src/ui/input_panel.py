@@ -50,31 +50,43 @@ class InputPanel(QWidget):
         # BƯỚC 2: CHỌN MÙA
         f_lay.addWidget(QLabel("<b>🍂 BƯỚC 2: CHỌN MÙA</b>"))
         self.combo_mua = QComboBox()
-        self.combo_mua.addItems(["Tất cả", "Mùa nước nổi", "Mùa mưa", "Mùa nắng", "Quanh năm"])
+        self.combo_mua.addItems([ "Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa tết", " Mùa trái cây"])
         f_lay.addWidget(self.combo_mua)
 
         # BƯỚC 3: CHỌN LOẠI MÓN ĂN
         f_lay.addWidget(QLabel("<b>🍲 BƯỚC 3: LOẠI MÓN ĂN</b>"))
         self.combo_loai = QComboBox()
-        self.combo_loai.addItems(["Tất cả", "Món nước (Lẩu, bún...)", "Món khô (Bánh, gỏi...)", "Trái cây/Ăn vặt"])
+        self.combo_loai.addItems(["Món nước", "Món khô", "Món tráng miệng", "Món gỏi", "Món nướng", "Món xào",
+                                  "Món hấp", "Món lẩu", "Món cháo", "Món bánh" ])
         f_lay.addWidget(self.combo_loai)
-
-        # BƯỚC 4: CHỌN NGUYÊN LIỆU (Dựa trên đặc sản ĐBSCL)
+        # BƯỚC 4: Nguyên liệu chính (N)
         f_lay.addWidget(QLabel("<b>🐟 BƯỚC 4: NGUYÊN LIỆU CHÍNH</b>"))
-        self.combo_nguyen_lieu = QComboBox()
-        # Dữ liệu nguyên liệu phổ biến từ file báo cáo
-        self.combo_nguyen_lieu.addItems(["Tất cả", "Cá (Lóc, Linh, Sặc...)", "Tôm/Cua", "Thịt Heo/Bò", "Côn trùng", "Thực vật (Sen, Thốt nốt...)"])
-        f_lay.addWidget(self.combo_nguyen_lieu)
+        self.combo_nlc = QComboBox()
+        self.combo_nlc.addItems([ "Hải sản", "Cá", "Bún", "Hủ tiếu", "Bánh tằm", "Bột", "Nếp", "Gạo", "Thịt", "Trứng", "Trái cây"])
+        f_lay.addWidget(self.combo_nlc)
 
-        # BƯỚC 5: CHỌN KHẨU VỊ
-        f_lay.addWidget(QLabel("<b>👅 BƯỚC 5: CHỌN KHẨU VỊ</b>"))
+        # BƯỚC 5: Nguyên liệu phụ (P)
+        f_lay.addWidget(QLabel("<b>🌿 BƯỚC 5: NGUYÊN LIỆU PHỤ</b>"))
+        self.combo_nlp = QComboBox()
+        self.combo_nlp.addItems([ "Sen", "Mắm", "Bông điên điển", "Lá chúc", "Rau đắng", "Nước cốt dừa", "Rau củ quả", "Chao"])
+        f_lay.addWidget(self.combo_nlp)
+        
+
+        # 6. KHẨU VỊ (V) - 8 Checkboxes
+        f_lay.addWidget(QLabel("<b>👅 Bước 6: Chọn khẩu vị</b>"))
         grid_vi = QGridLayout()
-        self.chk_cay = QCheckBox("🌶️ Cay")
-        self.chk_beo = QCheckBox("🥥 Béo")
-        self.chk_chua = QCheckBox("🍋 Chua")
-        self.chk_ngot = QCheckBox("🍰 Ngọt")
-        grid_vi.addWidget(self.chk_cay, 0, 0); grid_vi.addWidget(self.chk_beo, 0, 1)
-        grid_vi.addWidget(self.chk_chua, 1, 0); grid_vi.addWidget(self.chk_ngot, 1, 1)
+        self.chk_cay = QCheckBox("🌶️ Cay (V1)");    
+        self.chk_ngot = QCheckBox("🍰 Ngọt (V2)")
+        self.chk_chua = QCheckBox("🍋 Chua (V3)");  
+        self.chk_man = QCheckBox("🧂 Mặn (V4)")
+        self.chk_beo = QCheckBox("🥥 Béo (V5)");   
+        self.chk_thanh = QCheckBox("🍃 Thanh (V6)")
+        self.chk_bui = QCheckBox("🥜 Bùi (V7)");    
+        self.chk_dang = QCheckBox("☕ Đắng (V8)")
+        grid_vi.addWidget(self.chk_cay, 0, 0); grid_vi.addWidget(self.chk_ngot, 0, 1)
+        grid_vi.addWidget(self.chk_chua, 1, 0); grid_vi.addWidget(self.chk_man, 1, 1)
+        grid_vi.addWidget(self.chk_beo, 1, 0); grid_vi.addWidget(self.chk_thanh, 1, 1)
+        grid_vi.addWidget(self.chk_bui, 1, 0); grid_vi.addWidget(self.chk_dang, 1, 1)
         f_lay.addLayout(grid_vi)
 
         f_lay.addStretch()
@@ -127,8 +139,13 @@ class InputPanel(QWidget):
             "tinh": self.selected_tinh, 
             "nuoc": self.chk_nuoc.isChecked(),
             "cay": self.chk_cay.isChecked(), 
-            "beo": self.chk_beo.isChecked(),
             "ngot": self.chk_ngot.isChecked(), 
+            "chua": self.chk_chua.isChecked(),
+            "man": self.chk_man.isChecked(),
+            "beo": self.chk_beo.isChecked(),
+            "thanh": self.chk_thanh.isChecked(),
+            "bui": self.chk_bui.isChecked(),
+            "dang": self.chk_dang.isChecked(),
             "vi": self.combo_vi.currentText(),
             "mua": self.combo_mua.currentText()
         }
