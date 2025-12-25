@@ -4,14 +4,15 @@ from .knowledge_base import MAPPER, DATA_MON_AN
 
 def infer_dishes(criteria, data_mon_an):
     found_ids = set()
-    # Lấy đường dẫn chuẩn đến file raw_rules.txt
+    # Lấy đường dẫn chuẩn đến file raw_rules.txt ở thư mục gốc
     base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     rules_path = os.path.join(base_path, "raw_rules.txt")
     
     if not os.path.exists(rules_path):
-        print(f"Không tìm thấy file luật tại: {rules_path}")
+        print(f"LỖI: Không tìm thấy file luật tại: {rules_path}")
         return []
 
+    # Regex chuẩn để đọc luật từ raw_rules.txt
     pattern = r"(T\d+)\s*\^\s*(L\d+)\s*\^\s*(M\d+)\s*\^\s*(N\d+)\s*\^\s*(P\d+)\s*\^\s*(V\d+)\s*=>\s*(D\d+)"
 
     with open(rules_path, "r", encoding="utf-8") as f:
@@ -25,12 +26,15 @@ def infer_dishes(criteria, data_mon_an):
                 match_mua = (criteria['mua'] == "Tất cả" or MAPPER.get(m) == criteria['mua'])
                 match_loai = (criteria['loai'] == "Tất cả" or MAPPER.get(l) == criteria['loai'])
                 
+                # Kiểm tra Vị (So khớp danh sách vị người dùng chọn)
                 match_vi = False
-                if not criteria['vi'] or MAPPER.get(v) in criteria['vi']:
+                if not criteria['vi']: 
+                    match_vi = True
+                elif MAPPER.get(v) in criteria['vi']:
                     match_vi = True
 
                 if match_tinh and match_mua and match_loai and match_vi:
                     found_ids.add(d)
 
-    # TRẢ VỀ DANH SÁCH MÓN ĂN ĐẦY ĐỦ (Chứa cả mo_ta và hinh_anh)
+    # TRẢ VỀ DANH SÁCH ĐẦY ĐỦ OBJECT (Có hình ảnh, mô tả)
     return [mon for mon in data_mon_an if mon['id'] in found_ids]

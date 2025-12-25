@@ -1,5 +1,5 @@
 import os
-from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QApplication
+from PySide6.QtWidgets import *
 from PySide6.QtGui import QPixmap, QPainter
 from PySide6.QtCore import Qt
 
