@@ -56,7 +56,6 @@ class ResultPanel(QWidget):
     def show_dishes(self, dishes):
         """Hiển thị danh sách món ăn dưới dạng thẻ ảnh"""
         self.clear_results()
-        
 
         for i, mon in enumerate(dishes):
             card = self.create_dish_card(mon)
