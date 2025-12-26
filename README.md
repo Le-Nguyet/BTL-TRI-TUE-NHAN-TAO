@@ -14,14 +14,14 @@ BTL TRI TUE NHAN TAO/
 ├── src/
 │   ├── logic/
 │   │   ├── __init__.py
-│   │   ├── knowledge_base.py    # Chứa DATA_MON_AN (có nlc, nlp) và MAPPER
-│   │   └── inference_engine.py  # Bộ suy diễn (đã thêm so khớp nlc, nlp)
+│   │   ├── knowledge_base.py    # Chứa DATA_MON_AN 
+│   │   └── inference_engine.py  # Bộ suy diễn 
 │   └── ui/
 │       ├── __init__.py
 │       ├── main_window.py       # Quản lý Stack chuyển trang
 │       ├── input_panel.py       # Nhập liệu & chứa Map
-│       ├── map_widget.py        # Widget bản đồ tương tác (Mới)
-│       ├── result_panel.py      # Hiển thị kết quả (Dùng nlc, nlp)
+│       ├── map_widget.py        # Widget bản đồ tương tác 
+│       ├── result_panel.py      # Hiển thị kết quả 
 │       └── styles.py            # Quản lý màu sắc, font
 ├── main.py              # File chạy chính
 └── raw_rules.txt        # Tập luật (T ^ L ^ M ^ N ^ P ^ V => D)

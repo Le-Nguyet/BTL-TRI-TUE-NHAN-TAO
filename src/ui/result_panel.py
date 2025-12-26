@@ -57,11 +57,6 @@ class ResultPanel(QWidget):
         """Hiển thị danh sách món ăn dưới dạng thẻ ảnh"""
         self.clear_results()
         
-        if not dishes:
-            no_res = QLabel("Rất tiếc, không tìm thấy món ăn nào phù hợp với yêu cầu của bạn.")
-            no_res.setStyleSheet("font-size: 18px; color: #757575; font-style: italic;")
-            self.res_layout.addWidget(no_res, 0, 0, alignment=Qt.AlignCenter)
-            return
 
         for i, mon in enumerate(dishes):
             card = self.create_dish_card(mon)
@@ -114,6 +109,7 @@ class ResultPanel(QWidget):
 
         location = QLabel(f"📍 {mon['tinh']}")
         location.setStyleSheet("font-weight: bold; color: #2E7D32; font-size: 14px; border: none;")
+
 
         desc = QLabel(mon['mo_ta'])
         desc.setWordWrap(True)
