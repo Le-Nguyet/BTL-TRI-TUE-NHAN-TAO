@@ -8,7 +8,7 @@ from src.ui.input_panel import InputPanel
 from src.ui.result_panel import ResultPanel
 
 # Import dữ liệu và logic suy diễn
-from src.logic.knowledge_base import DATA_MON_AN 
+from src.logic.knowledge_base import DATA_MON_AN
 from src.logic.inference_engine import infer_dishes
 
 class MainWindow(QMainWindow):
@@ -18,14 +18,14 @@ class MainWindow(QMainWindow):
         
         # Thiết lập kích thước mặc định và mở rộng tối đa
         self.resize(1100, 800)
-        self.showMaximized() 
+        self.showMaximized()
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
         # 1. Khởi tạo giao diện Trang chủ (Home)
         self.home = QWidget()
-        self.home.paintEvent = self._paint_home_background 
+        self.home.paintEvent = self._paint_home_background
         
         # 2. Khởi tạo các Panel chức năng
         self.input_p = InputPanel()
@@ -62,11 +62,11 @@ class MainWindow(QMainWindow):
         """)
 
         # Đẩy nút xuống vị trí 3/4 màn hình
-        lay.addStretch(250) 
+        lay.addStretch(250)
         lay.addWidget(self.btn_start, alignment=Qt.AlignCenter)
         lay.addStretch(5)
 
-   # Load ảnh nền trang chủ (Sửa đường dẫn chuẩn)
+        # Load ảnh nền trang chủ (Sửa đường dẫn chuẩn)
         base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         img_path = os.path.normpath(os.path.join(base, "assets", "images", "Trang chủ.png"))
         self.bg_pixmap = QPixmap(img_path)
@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         self.result_p.clear_results()
         
         # 2. Gọi bộ máy suy diễn
-        # Đảm bảo infer_dishes trả về danh sách đối tượng món ăn từ knowledge_base
+        # infer_dishes sẽ trả về danh sách các món ăn khớp với tiêu chí
         results = infer_dishes(criteria, DATA_MON_AN)
         
         # 3. Xử lý hiển thị kết quả
@@ -119,17 +119,16 @@ class MainWindow(QMainWindow):
                 lb_empty.setAlignment(Qt.AlignCenter)
                 self.result_p.res_layout.addWidget(lb_empty, 0, 0)
         else:
-            # Duyệt qua danh sách kết quả và thêm thẻ món ăn vào giao diện
+            # Duyệt qua danh sách kết quả và hiển thị lên giao diện
             for mon in results:
-                # 'mon' là dictionary chứa đầy đủ: ten, hinh_anh, mo_ta, tinh...
                 self.result_p.add_result_card(mon)
 
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""
         if event.key() == Qt.Key_F11:
-            if self.isFullScreen(): 
+            if self.isFullScreen():
                 self.showMaximized()
-            else: 
+            else:
                 self.showFullScreen()
         elif event.key() == Qt.Key_Escape and self.isFullScreen():
             self.showMaximized()
