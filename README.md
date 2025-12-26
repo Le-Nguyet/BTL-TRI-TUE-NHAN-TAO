@@ -7,22 +7,24 @@
 3. Công nghệ sử dụng: Python, PySide6 (Giao diện), Lập luận dựa trên luật (Rule-based reasoning)
 
 📂 CẤU TRÚC THƯ MỤC Plaintext BTL TRI TUE NHAN TAO/
+BTL TRI TUE NHAN TAO/
 ├── assets/
-│   ├── fonts/         # Phông chữ Nunito thiết kế giao diện
-│   └── images/        # Kho ảnh đặc sản (D1.png -> D27.png)
-├── data/
-│   └── mon_an.db      # Cơ sở dữ liệu (tùy chọn mở rộng)
+│   ├── fonts/           # Nunito-ExtraBold.ttf
+│   └── images/          # D1.png, ..., ban-do-mien-tay.png, Trang chủ.png
 ├── src/
 │   ├── logic/
-│   │   ├── knowledge_base.py    # Cơ sở tri thức (27 món ăn đặc sản)
-│   │   └── inference_engine.py  # Bộ suy diễn logic
+│   │   ├── __init__.py
+│   │   ├── knowledge_base.py    # Chứa DATA_MON_AN (có nlc, nlp) và MAPPER
+│   │   └── inference_engine.py  # Bộ suy diễn (đã thêm so khớp nlc, nlp)
 │   └── ui/
-│       ├── main_window.py       # Quản lý chuyển trang (Stack)
-│       ├── input_panel.py       # Trang nhập liệu (Sở thích/Mùa/Tỉnh)
-│       ├── result_panel.py      # Trang hiển thị kết quả tư vấn
-│       └── styles.py            # Quản lý giao diện, màu sắc
-├── main.py            # Tệp chạy ứng dụng chính
-└── raw_rules.txt      # Tập luật thô của hệ thống
+│       ├── __init__.py
+│       ├── main_window.py       # Quản lý Stack chuyển trang
+│       ├── input_panel.py       # Nhập liệu & chứa Map
+│       ├── map_widget.py        # Widget bản đồ tương tác (Mới)
+│       ├── result_panel.py      # Hiển thị kết quả (Dùng nlc, nlp)
+│       └── styles.py            # Quản lý màu sắc, font
+├── main.py              # File chạy chính
+└── raw_rules.txt        # Tập luật (T ^ L ^ M ^ N ^ P ^ V => D)
 
 🚀 HƯỚNG DẪN CÀI ĐẶT
 1. Yêu cầu: Cài đặt Python 3.10 trở lên.
