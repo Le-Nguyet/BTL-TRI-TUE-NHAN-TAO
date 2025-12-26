@@ -49,11 +49,32 @@ class InputPanel(QWidget):
         f_lay = QVBoxLayout(filter_frame)
         f_lay.setSpacing(12)
 
-        # BƯỚC 2: CHỌN MÙA
-        f_lay.addWidget(QLabel("<b>🍂 BƯỚC 2: CHỌN MÙA</b>"))
-        self.combo_mua = QComboBox()
-        self.combo_mua.addItems(["Tất cả", "Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa tết", "Mùa trái cây"])
-        f_lay.addWidget(self.combo_mua)
+        # STYLE CHUNG CHO CHECKBOX (TICK XANH)
+        checkbox_style = """
+            QCheckBox::indicator:checked {
+                background-color: #2E7D32;
+                border: 2px solid #2E7D32;
+                image: url(assets/icons/tick_xanh.png); 
+            }
+            QCheckBox::indicator:unchecked {
+                border: 2px solid #BDC3C7;
+                background-color: white;
+            }
+            QCheckBox { font-size: 13px; spacing: 8px; }
+        """
+
+        # BƯỚC 2: CHỌN MÙA (Chỉ chọn 1)
+        f_lay.addWidget(QLabel("<b>🍂 BƯỚC 2: CHỌN MÙA <font color='red'>*</font></b>"))
+        self.group_mua = QButtonGroup(self)
+        self.group_mua.setExclusive(True)
+        grid_mua = QGridLayout()
+        mua_opts = ["Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa Tết", "Mùa trái cây", "Quanh năm"]
+        for i, text in enumerate(mua_opts):
+            chk = QCheckBox(text)
+            chk.setStyleSheet(checkbox_style)
+            self.group_mua.addButton(chk)
+            grid_mua.addWidget(chk, i // 2, i % 2)
+        f_lay.addLayout(grid_mua)
 
         # BƯỚC 3: CHỌN LOẠI MÓN ĂN
         f_lay.addWidget(QLabel("<b>🍲 BƯỚC 3: LOẠI MÓN ĂN</b>"))
@@ -78,6 +99,9 @@ class InputPanel(QWidget):
 
         # BƯỚC 6: KHẨU VỊ (Bắt buộc)
         f_lay.addWidget(QLabel("<b>👅 Bước 6: Chọn khẩu vị <font color='red'>*</font></b>"))
+        self.group_vi = QButtonGroup(self)
+        self.group_vi.setExclusive(True) # Đảm bảo chỉ được tick 1 ô vị
+
         grid_vi = QGridLayout()
         self.chk_cay = QCheckBox("🌶️ Cay (V1)");    self.chk_ngot = QCheckBox("🍰 Ngọt (V2)")
         self.chk_chua = QCheckBox("🍋 Chua (V3)");   self.chk_man = QCheckBox("🧂 Mặn (V4)")
@@ -137,13 +161,19 @@ class InputPanel(QWidget):
         if self.selected_tinh == "Tất cả":
             QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ: Vui lòng chọn một tỉnh thành trên bản đồ!")
             return
+        
+         # Kiểm tra Mùa
+        selected_mua = self.group_mua.checkedButton()
+        if not selected_mua:
+            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ: Vui lòng chọn 1 mùa!")
+            return
+
 
         # 2. Kiểm tra các ComboBox (Nếu cần bắt buộc chọn cụ thể, bỏ "Tất cả")
-        if self.combo_mua.currentText() == "Tất cả" or \
-           self.combo_loai.currentText() == "Tất cả" or \
+        if self.combo_loai.currentText() == "Tất cả" or \
            self.combo_nlc.currentText() == "Tất cả" or \
            self.combo_nlp.currentText() == "Tất cả":
-            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ các thông tin mục Bước 2 đến Bước 5!")
+            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ các thông tin mục Bước 3 đến Bước 5!")
             return
 
         # 3. Kiểm tra Khẩu vị
@@ -164,7 +194,7 @@ class InputPanel(QWidget):
         # 4. Gửi dữ liệu
         data = {
             "tinh": self.selected_tinh, 
-            "mua": self.combo_mua.currentText(),
+            "mua": selected_mua.text(),
             "loai": self.combo_loai.currentText(),
             "nlc": self.combo_nlc.currentText(), 
             "nlp": self.combo_nlp.currentText(), 

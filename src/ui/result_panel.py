@@ -101,18 +101,20 @@ class ResultPanel(QWidget):
 
         card_lay.addWidget(img_label)
 
-        # 2. Thông tin văn bản
+       # --- 2. THÔNG TIN VĂN BẢN (Đã sửa Indentation và Alignment) ---
         name = QLabel(mon['ten'].upper())
         name.setStyleSheet("font-size: 18px; font-weight: bold; color: #1B5E20; border: none;")
         name.setWordWrap(True)
+        name.setAlignment(Qt.AlignCenter) # Căn giữa tên món
 
         location = QLabel(f"📍 {mon['tinh']}")
         location.setStyleSheet("font-weight: bold; color: #2E7D32; font-size: 14px; border: none;")
-
+        location.setAlignment(Qt.AlignCenter) # Căn giữa tỉnh thành
 
         desc = QLabel(mon['mo_ta'])
         desc.setWordWrap(True)
         desc.setStyleSheet("color: #455A64; font-size: 13px; border: none; line-height: 18px;")
+        desc.setAlignment(Qt.AlignCenter) # Căn giữa mô tả
 
         # Thêm các thành phần vào thẻ
         card_lay.addWidget(img_label, alignment=Qt.AlignCenter)
