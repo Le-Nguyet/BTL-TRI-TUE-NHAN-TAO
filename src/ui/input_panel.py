@@ -31,7 +31,6 @@ class InputPanel(QWidget):
         map_container = QFrame()
         map_v_lay = QVBoxLayout(map_container)
         
-        # Thêm dấu * đỏ cho Bước 1
         self.label_tinh = QLabel("📍 BƯỚC 1: CHỌN TỈNH THÀNH <font color='red'>*</font>")
         self.label_tinh.setStyleSheet("font-weight: bold; color: #2E7D32; font-size: 14px;")
         map_v_lay.addWidget(self.label_tinh)
@@ -76,38 +75,57 @@ class InputPanel(QWidget):
             grid_mua.addWidget(chk, i // 2, i % 2)
         f_lay.addLayout(grid_mua)
 
-        # BƯỚC 3: CHỌN LOẠI MÓN ĂN
-        f_lay.addWidget(QLabel("<b>🍲 BƯỚC 3: LOẠI MÓN ĂN</b>"))
-        self.combo_loai = QComboBox()
-        self.combo_loai.addItems(["Tất cả", "Món nước", "Món khô", "Món tráng miệng", "Món gỏi", 
-                                  "Món nướng", "Món xào", "Món hấp", "Món lẩu", "Món cháo", "Món bánh"])
-        f_lay.addWidget(self.combo_loai)
-
-        # BƯỚC 4: Nguyên liệu chính
+        # --- BƯỚC 3: LOẠI MÓN ĂN (Chuyển sang Checkbox chọn 1) ---
+        f_lay.addWidget(QLabel("<b>🍲 BƯỚC 3: LOẠI MÓN ĂN <font color='red'>*</font></b>"))
+        
+        # Tạo nhóm nút để đảm bảo chỉ chọn được 1 (Exclusive)
+        self.group_loai = QButtonGroup(self)
+        self.group_loai.setExclusive(True)
+        
+        grid_loai = QGridLayout()
+        loai_opts = [
+            "Món nước", "Món khô", "Món tráng miệng", "Món gỏi", 
+            "Món nướng", "Món xào", "Món hấp", "Món lẩu", "Món cháo", "Món bánh"
+        ]
+        
+        for i, text in enumerate(loai_opts):
+            chk = QCheckBox(text)
+            chk.setStyleSheet(checkbox_style) # Sử dụng chung style tick xanh đã có
+            self.group_loai.addButton(chk)
+            grid_loai.addWidget(chk, i // 2, i % 2) # Chia thành 2 cột
+            
+        f_lay.addLayout(grid_loai)
+        
         f_lay.addWidget(QLabel("<b>🐟 BƯỚC 4: NGUYÊN LIỆU CHÍNH</b>"))
         self.combo_nlc = QComboBox()
         self.combo_nlc.addItems(["Tất cả", "Hải sản", "Cá", "Bún", "Hủ tiếu", "Bánh tằm", 
                                  "Bột", "Nếp", "Gạo", "Thịt", "Trứng", "Trái cây"])
         f_lay.addWidget(self.combo_nlc)
 
-        # BƯỚC 5: Nguyên liệu phụ
         f_lay.addWidget(QLabel("<b>🌿 BƯỚC 5: NGUYÊN LIỆU PHỤ</b>"))
         self.combo_nlp = QComboBox()
         self.combo_nlp.addItems(["Tất cả", "Sen", "Mắm", "Bông điên điển", "Lá chúc", 
                                  "Rau đắng", "Nước cốt dừa", "Rau củ quả", "Chao"])
         f_lay.addWidget(self.combo_nlp)
 
-        # BƯỚC 6: KHẨU VỊ (Bắt buộc)
+        # BƯỚC 6: CHỌN KHẨU VỊ (Bắt buộc chọn 1)
         f_lay.addWidget(QLabel("<b>👅 Bước 6: Chọn khẩu vị <font color='red'>*</font></b>"))
         self.group_vi = QButtonGroup(self)
-        self.group_vi.setExclusive(True) # Đảm bảo chỉ được tick 1 ô vị
+        self.group_vi.setExclusive(True)
 
         grid_vi = QGridLayout()
-        self.chk_cay = QCheckBox("🌶️ Cay (V1)");    self.chk_ngot = QCheckBox("🍰 Ngọt (V2)")
+        self.chk_cay = QCheckBox("🌶️ Cay (V1)");     self.chk_ngot = QCheckBox("🍰 Ngọt (V2)")
         self.chk_chua = QCheckBox("🍋 Chua (V3)");   self.chk_man = QCheckBox("🧂 Mặn (V4)")
         self.chk_beo = QCheckBox("🥥 Béo (V5)");    self.chk_thanh = QCheckBox("🍃 Thanh (V6)")
         self.chk_bui = QCheckBox("🥜 Bùi (V7)");     self.chk_dang = QCheckBox("☕ Đắng (V8)")
-        
+
+        # Thêm style và Group
+        vi_list = [self.chk_cay, self.chk_ngot, self.chk_chua, self.chk_man, 
+                   self.chk_beo, self.chk_thanh, self.chk_bui, self.chk_dang]
+        for chk in vi_list:
+            chk.setStyleSheet(checkbox_style)
+            self.group_vi.addButton(chk)
+
         grid_vi.addWidget(self.chk_cay, 0, 0); grid_vi.addWidget(self.chk_ngot, 0, 1)
         grid_vi.addWidget(self.chk_chua, 1, 0); grid_vi.addWidget(self.chk_man, 1, 1)
         grid_vi.addWidget(self.chk_beo, 2, 0); grid_vi.addWidget(self.chk_thanh, 2, 1)
@@ -121,8 +139,8 @@ class InputPanel(QWidget):
         # --- 3. HÀNG NÚT BẤM ---
         btn_lay = QHBoxLayout()
         self.btn_back = QPushButton("⬅ QUAY LẠI")
-        self.btn_back.setCursor(Qt.PointingHandCursor)
         self.btn_back.setStyleSheet("border: none; color: #1976D2; text-decoration: underline;")
+        self.btn_back.setCursor(Qt.PointingHandCursor)
         
         self.btn_submit = QPushButton("XEM GỢI Ý MÓN ĂN 🍽️")
         self.btn_submit.setFixedSize(220, 50)
@@ -130,10 +148,7 @@ class InputPanel(QWidget):
         self.btn_submit.setStyleSheet("""
             QPushButton { 
                 background-color: #2E7D32; 
-                color: white; 
-                font-weight: bold; 
-                font-size: 16px; 
-                border-radius: 8px; 
+                color: white; font-weight: bold; font-size: 16px; border-radius: 8px; 
             }
             QPushButton:hover { background-color: #1B5E20; }
         """)
@@ -159,45 +174,46 @@ class InputPanel(QWidget):
     def _send_data(self):
         # 1. Kiểm tra Tỉnh thành
         if self.selected_tinh == "Tất cả":
-            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ: Vui lòng chọn một tỉnh thành trên bản đồ!")
+            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn một tỉnh thành trên bản đồ ở Bước 1!")
             return
         
-         # Kiểm tra Mùa
+        # 2. Kiểm tra Mùa
         selected_mua = self.group_mua.checkedButton()
         if not selected_mua:
-            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ: Vui lòng chọn 1 mùa!")
+            QMessageBox.warning(self, "Thông báo", "⚠️  Vui lòng chọn 1 mùa ở Bước 2!")
+            return
+        
+        # 3. Kiểm tra Loại món ăn (MỚI)
+        selected_loai_btn = self.group_loai.checkedButton()
+        if not selected_loai_btn:
+            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 Loại món ăn ở Bước 3!")
             return
 
-
-        # 2. Kiểm tra các ComboBox (Nếu cần bắt buộc chọn cụ thể, bỏ "Tất cả")
-        if self.combo_loai.currentText() == "Tất cả" or \
-           self.combo_nlc.currentText() == "Tất cả" or \
-           self.combo_nlp.currentText() == "Tất cả":
-            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ các thông tin mục Bước 3 đến Bước 5!")
+        # 4. Kiểm tra Nguyên liệu chính (Bước 4) - Đã tách riêng
+        if self.combo_nlc.currentText() == "Tất cả":
+            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn Nguyên liệu chính ở Bước 4!")
             return
 
-        # 3. Kiểm tra Khẩu vị
-        selected_vi = []
-        if self.chk_cay.isChecked(): selected_vi.append("Cay")
-        if self.chk_ngot.isChecked(): selected_vi.append("Ngọt")
-        if self.chk_chua.isChecked(): selected_vi.append("Chua")
-        if self.chk_man.isChecked(): selected_vi.append("Mặn")
-        if self.chk_beo.isChecked(): selected_vi.append("Béo")
-        if self.chk_thanh.isChecked(): selected_vi.append("Thanh")
-        if self.chk_bui.isChecked(): selected_vi.append("Bùi")
-        if self.chk_dang.isChecked(): selected_vi.append("Đắng")
-
-        if not selected_vi:
-            QMessageBox.warning(self, "Thông báo", "⚠️ Hãy chọn đầy đủ: Vui lòng chọn ít nhất một khẩu vị ở Bước 6!")
+        # 5. Kiểm tra Nguyên liệu phụ (Bước 5) - Đã tách riêng
+        if self.combo_nlp.currentText() == "Tất cả":
+            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn Nguyên liệu phụ ở Bước 5!")
             return
 
-        # 4. Gửi dữ liệu
+        # 4. Kiểm tra Khẩu vị
+        selected_vi_btn = self.group_vi.checkedButton()
+        if not selected_vi_btn:
+            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 khẩu vị ở Bước 6!")
+            return
+
+        # Đóng gói dữ liệu (Chỉ lấy tên món, ví dụ "Cay" từ "🌶️ Cay (V1)")
+        flavor_text = selected_vi_btn.text().split(' ')[1] 
+        
         data = {
             "tinh": self.selected_tinh, 
             "mua": selected_mua.text(),
-            "loai": self.combo_loai.currentText(),
+            "loai": selected_loai_btn.text(),
             "nlc": self.combo_nlc.currentText(), 
             "nlp": self.combo_nlp.currentText(), 
-            "vi": selected_vi
+            "vi": [flavor_text]
         }
         self.submitted.emit(data)
