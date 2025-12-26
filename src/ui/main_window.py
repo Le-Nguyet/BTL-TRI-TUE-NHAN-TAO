@@ -99,29 +99,28 @@ class MainWindow(QMainWindow):
         self.input_p.submitted.connect(self._on_data_submitted)
 
     def _on_data_submitted(self, criteria):
-        """Xử lý khi nhận dữ liệu từ InputPanel và hiển thị kết quả"""
-        # 1. Chuyển sang trang kết quả và dọn dẹp các kết quả cũ
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
-        # 2. Gọi bộ máy suy diễn
-        # infer_dishes sẽ trả về danh sách các món ăn khớp với tiêu chí
+        # Gọi bộ máy suy diễn
         results = infer_dishes(criteria, DATA_MON_AN)
         
+        # Hiển thị kết quả (Sửa lỗi gọi hàm add_result_card thành show_dishes)
+        self.result_p.show_dishes(results)
         # 3. Xử lý hiển thị kết quả
         if not results:
             # Nếu không có kết quả phù hợp
             if hasattr(self.result_p, 'show_no_result'):
                 self.result_p.show_no_result()
             else:
-                lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.")
+                lb_empty = QLabel("😔Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
                 lb_empty.setStyleSheet("font-size: 18px; color: #7f8c8d; font-weight: bold; margin-top: 50px;")
                 lb_empty.setAlignment(Qt.AlignCenter)
                 self.result_p.res_layout.addWidget(lb_empty, 0, 0)
         else:
             # Duyệt qua danh sách kết quả và hiển thị lên giao diện
             for mon in results:
-                self.result_p.add_result_card(mon)
+               self.result_p.show_dishes(results)
 
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""
