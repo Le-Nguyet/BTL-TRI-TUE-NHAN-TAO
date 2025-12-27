@@ -66,7 +66,7 @@ class InputPanel(QWidget):
             QCheckBox::indicator:checked {
                 border: none;
                 background-color: transparent;
-                image: url(assets/images/tick_xanh.png); 
+                image: url(assets/icons/tick_xanh.png); 
                 width: 24px;
                 height: 24px;
             }
