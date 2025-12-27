@@ -8,7 +8,7 @@ DATA_MON_AN = [
         "mua": "Mùa nước nổi",
         "nlc": "Cá",
         "nlp": "Bông điên điển",
-        "mo_ta": "Món ăn đặc trưng của mùa nước nổi với vị chua thanh và hoa điên điển vàng rực.",
+        "mo_ta": "Canh chua cá linh bông điên điển là món ăn đặc trưng của mùa nước nổi miền Tây Nam Bộ, đặc biệt nổi danh ở An Giang. Chỉ xuất hiện vào mùa lũ, khi cá linh non và bông điên điển vàng ươm cùng hội tụ, món ăn này đem đến hương vị thanh tao nhờ vị chua dịu của me, sự ngọt béo của cá linh tươi và độ giòn thơm từ bông điên điển. Đây thực sự là bản hòa quyện tuyệt vời của hương vị tự nhiên, mộc mạc, đầy chất quê hương, lắng đọng trong lòng thực khách..",
         "hinh_anh": "D1.png"
     },
     {
