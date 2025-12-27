@@ -1,6 +1,6 @@
 import os
 from PySide6.QtWidgets import *
-from PySide6.QtGui import QPixmap, QPainter
+from PySide6.QtGui import QPixmap, QPainter, QAction
 from PySide6.QtCore import Qt
 
 # Import Panels
@@ -16,9 +16,12 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("HỆ CHUYÊN GIA TƯ VẤN MÓN ĂN")
         
-        # Thiết lập kích thước mặc định và mở rộng tối đa
+        # Thiết lập kích thước
         self.resize(1100, 800)
         self.showMaximized()
+
+        # Giữ lại Menu Bar cho các chức năng phụ để màn hình chính sạch sẽ
+        self._create_menu_bar()
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
@@ -31,13 +34,48 @@ class MainWindow(QMainWindow):
         self.input_p = InputPanel()
         self.result_p = ResultPanel()
 
-        # Thêm vào Stack điều hướng
         self.stack.addWidget(self.home)      # Index 0
         self.stack.addWidget(self.input_p)   # Index 1
         self.stack.addWidget(self.result_p)  # Index 2
 
         self._init_home_ui()
         self._setup_connections()
+
+    def _create_menu_bar(self):
+        """Thanh menu trên cùng cho Hướng dẫn/Liên hệ"""
+        menu = self.menuBar()
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: white;
+                border: 1px solid #2E7D32;
+                border-radius: 8px;
+                padding: 5px;
+            }
+            QMenu::item {
+                padding: 10px 30px 10px 20px;
+                font-size: 15px;
+                font-weight: bold; /* Làm chữ đậm lên */
+                color: #333333; /* Màu chữ đen đậm rõ ràng */
+                border-radius: 4px;
+            }
+            QMenu::item:selected {
+                background-color: #2E7D32; /* Màu nền khi rê chuột vào */
+                color: white; /* Chữ trắng nổi bật trên nền xanh */
+            }
+        """)
+        help_menu = menu.addMenu("⚙️ Tùy chọn hệ thống")
+        
+        actions = [
+            ("📖 Hướng dẫn sử dụng", self._show_instruction),
+            ("📞 Thông tin liên hệ", self._show_contact),
+            ("⚖️ Điều khoản sử dụng", self._show_terms),
+            ("❌ Thoát ứng dụng", QApplication.instance().quit)
+        ]
+        
+        for text, slot in actions:
+            act = QAction(text, self)
+            act.triggered.connect(slot)
+            help_menu.addAction(act)
 
     def _init_home_ui(self):
         """Thiết kế nút bấm trên trang chủ"""
@@ -66,13 +104,13 @@ class MainWindow(QMainWindow):
         lay.addWidget(self.btn_start, alignment=Qt.AlignCenter)
         lay.addStretch(5)
 
-        # Load ảnh nền trang chủ (Sửa đường dẫn chuẩn)
+        # Load ảnh nền trang chủ (Sử dụng đường dẫn bạn đã thiết lập)
         base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         img_path = os.path.normpath(os.path.join(base, "assets", "images", "Trang chủ.png"))
         self.bg_pixmap = QPixmap(img_path)
 
     def _paint_home_background(self, event):
-        """Vẽ hình nền tự động co giãn"""
+        """Vẽ nền ảnh phủ kín màn hình"""
         if not self.bg_pixmap.isNull():
             painter = QPainter(self.home)
             painter.drawPixmap(self.home.rect(), self.bg_pixmap.scaled(
@@ -80,23 +118,21 @@ class MainWindow(QMainWindow):
             ))
 
     def _setup_connections(self):
-        """Kết nối các tín hiệu điều hướng giữa các trang"""
-        # Từ Home -> Nhập liệu
+        """Kết nối logic điều hướng"""
         self.btn_start.clicked.connect(lambda: self.stack.setCurrentIndex(1))
-        
-        # Từ Nhập liệu -> Quay lại Home
         self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
-        
-        # Từ Kết quả -> Quay lại Nhập liệu
-        if hasattr(self.result_p, 'btn_back'):
-            self.result_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(1))
-        
-        # Nút thoát ứng dụng
-        if hasattr(self.result_p, 'btn_exit'):
-            self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
-            
-        # Khi nhấn nút "Xem gợi ý" ở InputPanel
         self.input_p.submitted.connect(self._on_data_submitted)
+
+    # --- Các hàm hiển thị thông báo (Giữ nguyên) ---
+    def _show_instruction(self):
+        QMessageBox.information(self, "Hướng dẫn sử dụng", "- Chọn hệ chuyên gia: để hỗ trợ lựa chọn quyết định món ăn khi đến vùng ĐBSCL.\n" \
+        "+ Nhấn chọn đầy đủ các tiêu chí của món ăn và Chờ kết quả. \n- Phần liên hệ: Để xem thông tin liên hệ. \n- Phần điều khoản sử dụng: Xem chính sách đối với các thông tin được cung cấp.")
+
+    def _show_contact(self):
+        QMessageBox.information(self, "Liên hệ", "Sinh viên thực hiện:\n- Lê Thị Thu Nguyệt ĐHSTIN23B\n- Nguyễn Tuấn Dinh ĐHSTIN23B")
+
+    def _show_terms(self):
+        QMessageBox.information(self, "Điều khoản sử dụng", "- Mục đích phục vụ học tập BTL môn Trí Tuệ Nhân Tạo.\n- Các thông tin chỉ mang tính chất tham khảo do thu thập từ nhiều nguồn khác nhau.")
 
     def _on_data_submitted(self, criteria):
         self.stack.setCurrentWidget(self.result_p)
