@@ -122,6 +122,15 @@ class MainWindow(QMainWindow):
         self.btn_start.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         self.input_p.submitted.connect(self._on_data_submitted)
+        self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+        
+        # Từ Kết quả -> Quay lại Nhập liệu
+        if hasattr(self.result_p, 'btn_back'):
+            self.result_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(1))
+        
+        # Nút thoát ứng dụng
+        if hasattr(self.result_p, 'btn_exit'):
+            self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
 
     # --- Các hàm hiển thị thông báo (Giữ nguyên) ---
     def _show_instruction(self):
