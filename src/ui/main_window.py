@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         # 2. Khởi tạo các Panel chức năng
         self.input_p = InputPanel()
         self.result_p = ResultPanel()
+        self.last_dish = ""
 
         self.stack.addWidget(self.home)      # Index 0
         self.stack.addWidget(self.input_p)   # Index 1
@@ -156,6 +157,11 @@ class MainWindow(QMainWindow):
         if hasattr(self.result_p, 'view_map_signal'):
             self.result_p.view_map_signal.connect(self._open_food_map)
 
+        # Kết nối Menu từ trang chủ sang trang nhập liệu
+        if hasattr(self.input_p, 'btn_system_options'):
+            self.input_p.btn_system_options.setMenu(self.btn_system_options.menu())
+            self.input_p.btn_system_options.setStyleSheet(self.btn_system_options.styleSheet())
+
     def _open_food_map(self, food_query):
         """Mở Google Maps tìm địa chỉ quán ăn"""
         search_url = f"https://www.google.com/maps/search/{food_query}+ngon+nhất"
@@ -175,7 +181,7 @@ class MainWindow(QMainWindow):
             thanks = QMessageBox(self)
             thanks.setWindowTitle("Tạm biệt")
             thanks.setText("Cảm ơn bạn đã tin tưởng lựa chọn chúng tôi!\n\n"
-                          "Chúc bạn sẽ thưởng thức trọn vẹn món ăn và có những kỷ niệm thật đẹp tại vùng đất Chín Rồng.")
+                          "Chúc bạn sẽ thưởng thức trọn vẹn món ăn và có những kỷ niệm thật đẹp tại vùng đất Chín Rồng này bạn nhé!!!.")
             thanks.setStyleSheet("QLabel{ font-size: 14px; color: #1B5E20; font-weight: bold; }")
             thanks.exec()
             QApplication.instance().quit()
@@ -183,11 +189,12 @@ class MainWindow(QMainWindow):
     def _show_instruction(self):
         QMessageBox.information(self, "Hướng dẫn", 
             "- Bước 1: Nhấn 'Bắt đầu tư vấn' để vào giao diện nhập liệu.\n"
-            "- Bước 2: Chọn các tiêu chí món ăn bạn mong muốn.\n"
-            "- Bước 3: Xem kết quả và nhấn 'Xem địa chỉ' để tìm quán ăn gần nhất.")
+            "- Bước 2: Chọn tỉnh mà bạn muốn trải nghiệm ẩm thực đặc sản của vùng.\n"
+            "- Bước 3: Chọn các tiêu chí ( từ 2 --> 6) của món ăn mà bạn mong muốn được thưởng thức.\n"
+            "- Bước 4: Xem kết quả và nhấn 'Xem địa chỉ' để tìm quán ăn gần nhất.")
 
     def _show_contact(self):
-        QMessageBox.information(self, "Liên hệ", "Sinh viên thực hiện:\n- Lê Thị Thu Nguyệt - ĐHSTIN23B\n- Nguyễn Tuấn Dinh - ĐHSTIN23B")
+        QMessageBox.information(self, "Liên hệ", "Sinh viên thực hiện:\n1. Lê Thị Thu Nguyệt - ĐHSTIN23B\n2. Nguyễn Tuấn Dinh - ĐHSTIN23B")
 
     def _show_terms(self):
         QMessageBox.information(self, "Điều khoản", "Ứng dụng phục vụ mục đích học tập và tham khảo văn hóa ẩm thực.")
@@ -199,7 +206,10 @@ class MainWindow(QMainWindow):
         
         results = infer_dishes(criteria, DATA_MON_AN)
         
-        if not results:
+        if results:
+            self.last_dish = results[0]['ten']  # Lưu lại để làm Ending Card
+            self.result_p.show_dishes(results)
+        else:
             lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
             lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
             lb_empty.setAlignment(Qt.AlignCenter)
@@ -208,13 +218,14 @@ class MainWindow(QMainWindow):
             self.result_p.res_layout.addStretch()
             self.result_p.res_layout.addWidget(lb_empty)
             self.result_p.res_layout.addStretch()
-        else:
-            self.result_p.show_dishes(results)
 
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""
         if event.key() == Qt.Key_F11:
-            if self.isFullScreen(): self.showMaximized()
-            else: self.showFullScreen()
+            if self.isFullScreen(): 
+                self.showMaximized()
+            else: 
+                self.showFullScreen()
         elif event.key() == Qt.Key_Escape and self.isFullScreen():
             self.showMaximized()
+  
