@@ -1,4 +1,5 @@
 import os
+import webbrowser 
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QPixmap, QPainter, QAction
 from PySide6.QtCore import Qt
@@ -20,8 +21,8 @@ class MainWindow(QMainWindow):
         self.resize(1100, 800)
         self.showMaximized()
 
-        # Giữ lại Menu Bar cho các chức năng phụ để màn hình chính sạch sẽ
-        self._create_menu_bar()
+        # Ẩn thanh menu bar mặc định để sử dụng giao diện tùy chỉnh sạch sẽ hơn
+        self.menuBar().hide() 
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
@@ -41,48 +42,54 @@ class MainWindow(QMainWindow):
         self._init_home_ui()
         self._setup_connections()
 
-    def _create_menu_bar(self):
-        """Thanh menu trên cùng cho Hướng dẫn/Liên hệ"""
-        menu = self.menuBar()
-        menu.setStyleSheet("""
-            QMenu {
-                background-color: white;
-                border: 1px solid #2E7D32;
-                border-radius: 8px;
-                padding: 5px;
-            }
-            QMenu::item {
-                padding: 10px 30px 10px 20px;
-                font-size: 15px;
-                font-weight: bold; /* Làm chữ đậm lên */
-                color: #333333; /* Màu chữ đen đậm rõ ràng */
-                border-radius: 4px;
-            }
-            QMenu::item:selected {
-                background-color: #2E7D32; /* Màu nền khi rê chuột vào */
-                color: white; /* Chữ trắng nổi bật trên nền xanh */
-            }
-        """)
-        help_menu = menu.addMenu("⚙️ Tùy chọn hệ thống")
-        
-        actions = [
-            ("📖 Hướng dẫn sử dụng", self._show_instruction),
-            ("📞 Thông tin liên hệ", self._show_contact),
-            ("⚖️ Điều khoản sử dụng", self._show_terms),
-            ("❌ Thoát ứng dụng", QApplication.instance().quit)
-        ]
-        
-        for text, slot in actions:
-            act = QAction(text, self)
-            act.triggered.connect(slot)
-            help_menu.addAction(act)
-
     def _init_home_ui(self):
-        """Thiết kế nút bấm trên trang chủ"""
-        lay = QVBoxLayout(self.home)
+        """Thiết kế giao diện trang chủ với menu Tùy chọn to đậm ở góc phải trên"""
+        main_layout = QVBoxLayout(self.home)
+        main_layout.setContentsMargins(25, 25, 25, 25)
+
+        # --- PHẦN 1: NÚT TÙY CHỌN HỆ THỐNG ---
+        top_layout = QHBoxLayout()
+        top_layout.addStretch() 
         
+        self.btn_system_options = QPushButton("⚙️Tùy chọn")
+        self.btn_system_options.setFixedSize(145, 40)
+        self.btn_system_options.setCursor(Qt.PointingHandCursor)
+        self.btn_system_options.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(0, 0, 0, 0.75);
+                color: white;
+                border-radius: 12px;
+                font-weight: 900;
+                font-size: 16px;
+                border: 2px solid white;
+            }
+            QPushButton:hover { background-color: #2E7D32; }
+        """)
+        
+        # Menu thả xuống rõ nét
+        system_menu = QMenu(self)
+        system_menu.setStyleSheet("""
+            QMenu { background-color: white; border: 2px solid #2E7D32; border-radius: 10px; padding: 5px; }
+            QMenu::item { padding: 12px 30px; font-size: 15px; font-weight: bold; color: #000000; }
+            QMenu::item:selected { background-color: #2E7D32; color: white; }
+        """)
+
+        system_menu.addAction("📖 Hướng dẫn sử dụng", self._show_instruction)
+        system_menu.addAction("📞 Thông tin liên hệ", self._show_contact)
+        system_menu.addAction("⚖️ Điều khoản sử dụng", self._show_terms)
+        system_menu.addSeparator()
+        system_menu.addAction("❌ Thoát ứng dụng", QApplication.instance().quit)
+        
+        self.btn_system_options.setMenu(system_menu)
+        top_layout.addWidget(self.btn_system_options)
+        main_layout.addLayout(top_layout)
+
+        # --- PHẦN 2: NÚT BẮT ĐẦU TƯ VẤN ---
+        main_layout.addStretch(85) 
+        
+        bottom_container = QHBoxLayout()
         self.btn_start = QPushButton("BẮT ĐẦU TƯ VẤN")
-        self.btn_start.setFixedSize(250, 60)
+        self.btn_start.setFixedSize(250, 60) 
         self.btn_start.setCursor(Qt.PointingHandCursor)
         self.btn_start.setStyleSheet("""
             QPushButton {
@@ -98,19 +105,19 @@ class MainWindow(QMainWindow):
                 border: 2px solid #A5D6A7;
             }
         """)
+        
+        bottom_container.addStretch()
+        bottom_container.addWidget(self.btn_start)
+        bottom_container.addStretch()
+        main_layout.addLayout(bottom_container)
+        main_layout.addStretch()
 
-        # Đẩy nút xuống vị trí 3/4 màn hình
-        lay.addStretch(250)
-        lay.addWidget(self.btn_start, alignment=Qt.AlignCenter)
-        lay.addStretch(5)
-
-        # Load ảnh nền trang chủ (Sử dụng đường dẫn bạn đã thiết lập)
+        # Load ảnh nền
         base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         img_path = os.path.normpath(os.path.join(base, "assets", "images", "Trang chủ.png"))
         self.bg_pixmap = QPixmap(img_path)
 
     def _paint_home_background(self, event):
-        """Vẽ nền ảnh phủ kín màn hình"""
         if not self.bg_pixmap.isNull():
             painter = QPainter(self.home)
             painter.drawPixmap(self.home.rect(), self.bg_pixmap.scaled(
@@ -118,11 +125,10 @@ class MainWindow(QMainWindow):
             ))
 
     def _setup_connections(self):
-        """Kết nối logic điều hướng"""
+        """Kết nối các tín hiệu giữa các màn hình"""
         self.btn_start.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         self.input_p.submitted.connect(self._on_data_submitted)
-        self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         
         # Từ Kết quả -> Quay lại Nhập liệu
         if hasattr(self.result_p, 'btn_back'):
@@ -131,44 +137,52 @@ class MainWindow(QMainWindow):
         # Nút thoát ứng dụng
         if hasattr(self.result_p, 'btn_exit'):
             self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
+        
+        # KẾT NỐI TÍN HIỆU BẢN ĐỒ 
+        if hasattr(self.result_p, 'view_map_signal'):
+            self.result_p.view_map_signal.connect(self._open_food_map)
 
-    # --- Các hàm hiển thị thông báo (Giữ nguyên) ---
+    def _open_food_map(self, food_query):
+        """Hàm mở Google Maps để tìm 3 quán ngon nhất dựa trên tên món"""
+        # Tạo câu lệnh tìm kiếm: "quán [tên món] ngon nhất"
+        search_url = f"https://www.google.com/maps/search/+{food_query}+ngon+nhất"
+        webbrowser.open(search_url)
+
     def _show_instruction(self):
-        QMessageBox.information(self, "Hướng dẫn sử dụng", "- Chọn hệ chuyên gia: để hỗ trợ lựa chọn quyết định món ăn khi đến vùng ĐBSCL.\n" \
-        "+ Nhấn chọn đầy đủ các tiêu chí của món ăn và Chờ kết quả. \n- Phần liên hệ: Để xem thông tin liên hệ. \n- Phần điều khoản sử dụng: Xem chính sách đối với các thông tin được cung cấp.")
+        QMessageBox.information(self, "Hướng dẫn sử dụng", 
+            "- Bước 1: Nhấn 'Bắt đầu' để vào giao diện nhập liệu.\n"
+            "- Bước 2: Chọn các tiêu chí món ăn bạn mong muốn.\n"
+            "- Bước 3: Xem kết quả và nhấn 'Xem địa chỉ' để tìm quán ăn gần nhất.")
 
     def _show_contact(self):
-        QMessageBox.information(self, "Liên hệ", "Sinh viên thực hiện:\n- Lê Thị Thu Nguyệt ĐHSTIN23B\n- Nguyễn Tuấn Dinh ĐHSTIN23B")
+        QMessageBox.information(self, "Liên hệ", "Đội ngũ phát triển:\n- Lê Thị Thu Nguyệt - ĐHSTIN23B\n- Nguyễn Tuấn Dinh - ĐHSTIN23B")
 
     def _show_terms(self):
-        QMessageBox.information(self, "Điều khoản sử dụng", "- Mục đích phục vụ học tập BTL môn Trí Tuệ Nhân Tạo.\n- Các thông tin chỉ mang tính chất tham khảo do thu thập từ nhiều nguồn khác nhau.")
+        QMessageBox.information(self, "Điều khoản", "Ứng dụng phục vụ mục đích học tập và tham khảo văn hóa ẩm thực.")
 
     def _on_data_submitted(self, criteria):
+        """Xử lý logic khi người dùng nhấn gửi yêu cầu tư vấn"""
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
-        # Gọi bộ máy suy diễn
         results = infer_dishes(criteria, DATA_MON_AN)
         
-        # Hiển thị kết quả (Sửa lỗi gọi hàm add_result_card thành show_dishes)
-        self.result_p.show_dishes(results)
-        # 3. Xử lý hiển thị kết quả
         if not results:
-            # Nếu không có kết quả phù hợp
-            if hasattr(self.result_p, 'show_no_result'):
-                self.result_p.show_no_result()
-            else:
-                lb_empty = QLabel("😔Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
-                lb_empty.setStyleSheet("font-size: 18px; color: #7f8c8d; font-weight: bold; margin-top: 50px;")
-                lb_empty.setAlignment(Qt.AlignCenter)
-                self.result_p.res_layout.addWidget(lb_empty, 0, 0)
+            # Tạo nhãn thông báo khi không có kết quả
+            lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
+            lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
+            lb_empty.setAlignment(Qt.AlignCenter)
+            
+            # Sử dụng Stretch để căn giữa dòng chữ theo chiều dọc
+            self.result_p.res_layout.addStretch()
+            self.result_p.res_layout.addWidget(lb_empty)
+            self.result_p.res_layout.addStretch()
         else:
-            # Duyệt qua danh sách kết quả và hiển thị lên giao diện
-            for mon in results:
-               self.result_p.show_dishes(results)
+            # Hiển thị danh sách món ăn
+            self.result_p.show_dishes(results)
 
     def keyPressEvent(self, event):
-        """Phím tắt F11 toàn màn hình"""
+        """Xử lý các phím tắt toàn cục"""
         if event.key() == Qt.Key_F11:
             if self.isFullScreen():
                 self.showMaximized()

@@ -80,7 +80,7 @@ class InputPanel(QWidget):
         self.group_mua = QButtonGroup(self)
         self.group_mua.setExclusive(True)
         grid_mua = QGridLayout()
-        mua_opts = ["Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa Tết", "Mùa trái cây", "Quanh năm"]
+        mua_opts = ["Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa Tết", "Mùa trái cây"]
         for i, text in enumerate(mua_opts):
             chk = QCheckBox(text)
             chk.setStyleSheet(checkbox_style)
@@ -113,7 +113,7 @@ class InputPanel(QWidget):
         f_lay.addWidget(QLabel("<b>🌿 BƯỚC 5: NGUYÊN LIỆU PHỤ <font color='red'>*</font></b>"))
         self.combo_nlp = QComboBox()
         self.combo_nlp.addItems(["Tất cả", "Sen", "Mắm", "Bông điên điển", "Lá chúc", 
-                                 "Rau đắng", "Nước cốt dừa", "Rau củ quả", "Chao"])
+                                 "Rau đắng", "Nước cốt dừa", "Rau củ quả", "Chao", " Lá giang"])
         f_lay.addWidget(self.combo_nlp)
 
         # BƯỚC 6: CHỌN KHẨU VỊ (Chỉ chọn 1)
