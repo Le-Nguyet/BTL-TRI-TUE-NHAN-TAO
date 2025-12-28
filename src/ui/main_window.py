@@ -1,5 +1,5 @@
 import os
-import webbrowser 
+import webbrowser
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QPixmap, QPainter, QAction
 from PySide6.QtCore import Qt
@@ -51,16 +51,15 @@ class MainWindow(QMainWindow):
         top_layout = QHBoxLayout()
         top_layout.addStretch() 
         
-        # Lấy đường dẫn đến file icon mui_ten của bạn
+        # Lấy đường dẫn đến file icon mui_ten
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        # Giả sử bạn lưu file tại: assets/images/mui_ten.png (Bạn có thể đổi tên file cho khớp)
         icon_path = os.path.normpath(os.path.join(base_dir, "assets", "icons", "mui_ten.png")).replace("\\", "/")
 
         self.btn_system_options = QPushButton("⚙️Tùy chọn")
         self.btn_system_options.setFixedSize(145, 40)
         self.btn_system_options.setCursor(Qt.PointingHandCursor)
         
-        # Cập nhật StyleSheet để dùng icon mới và chỉnh kích thước nhỏ lại
+        # Cập nhật StyleSheet để dùng icon mới, chỉnh kích thước nhỏ lại và xóa khung trắng
         self.btn_system_options.setStyleSheet(f"""
             QPushButton {{
                 background-color: rgba(0, 0, 0, 0.75);
@@ -69,18 +68,20 @@ class MainWindow(QMainWindow):
                 font-weight: 900;
                 font-size: 16px;
                 border: 2px solid white;
-                padding-right: 20px; /* Tạo khoảng trống cho mũi tên */
+                padding-right: 20px;
             }}
             QPushButton:hover {{ background-color: #2E7D32; }}
             
-            /* Tùy chỉnh dấu mũi nhọn nhỏ lại */
+            /* Tùy chỉnh dấu mũi nhọn nhỏ lại và xóa khung trắng */
             QPushButton::menu-indicator {{
                 image: url("{icon_path}");
                 subcontrol-origin: padding;
                 subcontrol-position: right center;
-                right: 10px;   /* Khoảng cách từ lề phải */
-                width: 12px;  /* Chiều rộng icon nhỏ */
-                height: 12px; /* Chiều cao icon nhỏ */
+                right: 10px;
+                width: 12px;
+                height: 12px;
+                background: none;
+                border: none;
             }}
         """)
         
@@ -96,7 +97,7 @@ class MainWindow(QMainWindow):
         system_menu.addAction("📞 Thông tin liên hệ", self._show_contact)
         system_menu.addAction("⚖️ Điều khoản sử dụng", self._show_terms)
         system_menu.addSeparator()
-        system_menu.addAction("❌ Thoát ứng dụng", QApplication.instance().quit)
+        system_menu.addAction("❌ Thoát ứng dụng", self._on_exit_app)
         
         self.btn_system_options.setMenu(system_menu)
         top_layout.addWidget(self.btn_system_options)
@@ -131,8 +132,7 @@ class MainWindow(QMainWindow):
         main_layout.addStretch()
 
         # Load ảnh nền
-        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        img_path = os.path.normpath(os.path.join(base, "assets", "images", "Trang chủ.png"))
+        img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", "Trang chủ.png"))
         self.bg_pixmap = QPixmap(img_path)
 
     def _paint_home_background(self, event):
@@ -148,22 +148,18 @@ class MainWindow(QMainWindow):
         self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         self.input_p.submitted.connect(self._on_data_submitted)
         
-        # Từ Kết quả -> Quay lại Nhập liệu
         if hasattr(self.result_p, 'btn_back'):
             self.result_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         
-        # Nút thoát ứng dụng
         if hasattr(self.result_p, 'btn_exit'):
-            self.result_p.btn_exit.clicked.connect(QApplication.instance().quit)
+            self.result_p.btn_exit.clicked.connect(self._on_exit_app)
         
-        # KẾT NỐI TÍN HIỆU BẢN ĐỒ 
         if hasattr(self.result_p, 'view_map_signal'):
             self.result_p.view_map_signal.connect(self._open_food_map)
 
     def _open_food_map(self, food_query):
-        """Hàm mở Google Maps để tìm 3 quán ngon nhất dựa trên tên món"""
-        # Tạo câu lệnh tìm kiếm: "quán [tên món] ngon nhất"
-        search_url = f"https://www.google.com/maps/search/+{food_query}+ngon+nhất"
+        """Mở Google Maps"""
+        search_url = f"https://www.google.com/maps/search/{food_query}+ngon+nhất"
         webbrowser.open(search_url)
 
     def _show_instruction(self):
@@ -186,19 +182,27 @@ class MainWindow(QMainWindow):
         results = infer_dishes(criteria, DATA_MON_AN)
         
         if not results:
-            # Tạo nhãn thông báo khi không có kết quả
             lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
             lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
             lb_empty.setAlignment(Qt.AlignCenter)
             
-            # Sử dụng Stretch để căn giữa dòng chữ theo chiều dọc
             self.result_p.res_layout.addStretch()
             self.result_p.res_layout.addWidget(lb_empty)
             self.result_p.res_layout.addStretch()
         else:
-            # Hiển thị danh sách món ăn
             self.result_p.show_dishes(results)
 
+    def _on_exit_app(self):
+        """Hiển thị lời cảm ơn và thoát ứng dụng"""
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Tạm biệt")
+        msg.setText("Cảm ơn bạn đã tin tưởng lựa chọn chúng tôi!\n"
+                    "Chúc bạn sẽ thưởng thức trọn vẹn món ăn và có những kỷ niệm thật đẹp tại vùng đất Đồng bằng sông Cửu Long.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setStyleSheet("QLabel{ font-size: 14px; color: #1B5E20; font-weight: bold; }")
+        msg.exec()
+        QApplication.instance().quit()
+      
     def keyPressEvent(self, event):
         """Xử lý các phím tắt toàn cục"""
         if event.key() == Qt.Key_F11:
