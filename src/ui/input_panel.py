@@ -138,8 +138,7 @@ class InputPanel(QWidget):
         
         self.vi_options = [
             ("🌶️ Cay", "Cay"), ("🍰 Ngọt", "Ngọt"), ("🍋 Chua", "Chua"), 
-            ("🧂 Mặn", "Mặn"), ("🥥 Béo", "Béo"), ("🍃 Thanh", "Thanh"), 
-            ("🥜 Bùi", "Bùi"), ("☕ Đắng", "Đắng")
+            ("🧂 Mặn", "Mặn"), ("🥥 Béo", "Béo"), ("☕ Đắng", "Đắng")
         ]
 
         for i, (display, value) in enumerate(self.vi_options):

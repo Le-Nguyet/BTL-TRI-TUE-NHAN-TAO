@@ -6,7 +6,6 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap, QFont, QGuiApplication
 
 class ResultPanel(QWidget):
-    # Tạo tín hiệu để báo cho MainWindow biết khi người dùng nhấn xem bản đồ
     view_map_signal = Signal(str)
 
     def __init__(self):
@@ -34,14 +33,10 @@ class ResultPanel(QWidget):
         bottom_layout = QHBoxLayout()
         self.btn_back = QPushButton("🔍 TÌM KIẾM LẠI")
         self.btn_exit = QPushButton("❌ THOÁT")
-
         btn_style = "padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px;"
         self.btn_back.setStyleSheet(btn_style + "background-color: #2E7D32; color: white;")
         self.btn_exit.setStyleSheet(btn_style + "background-color: #C62828; color: white;")
-
-        self.btn_back.setCursor(Qt.PointingHandCursor)
-        self.btn_exit.setCursor(Qt.PointingHandCursor)
-
+        
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.btn_back)
         bottom_layout.addWidget(self.btn_exit)
@@ -51,8 +46,7 @@ class ResultPanel(QWidget):
     def clear_results(self):
         while self.res_layout.count():
             item = self.res_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            if item.widget(): item.widget().deleteLater()
 
     def show_dishes(self, dishes):
         self.clear_results()
@@ -61,57 +55,36 @@ class ResultPanel(QWidget):
             self.res_layout.addWidget(card)
 
     def _share_result(self, mon, card_widget):
-        """Chụp ảnh thẻ món ăn và hỏi người dùng với giao diện nút bấm rõ ràng"""
         pixmap = card_widget.grab()
-
         file_path, _ = QFileDialog.getSaveFileName(
             self, "Lưu kết quả tư vấn", f"DacSan_{mon['ten']}.png", "Images (*.png *.jpg)"
         )
 
         if file_path:
             if pixmap.save(file_path):
-                # Tạo hộp thoại tùy chỉnh
                 confirm = QMessageBox(self)
                 confirm.setIcon(QMessageBox.Question)
                 confirm.setWindowTitle("Lưu thành công")
                 confirm.setText(f"<b style='color: #2E7D32; font-size: 16px;'>Đã lưu ảnh món {mon['ten']}!</b>")
-                confirm.setInformativeText("Món ngon phải có bạn hiền. Chia sẻ ngay hương vị này lên Zalo nha!")
+                confirm.setInformativeText("Bạn có muốn mở Zalo để gửi ảnh ngay không?")
                 
-                # Định dạng nút bấm bằng CSS để không bị trắng khó nhìn
-                confirm.setStyleSheet("""
-                    QMessageBox {
-                        background-color: white;
-                    }
-                    QPushButton {
-                        padding: 8px 20px;
-                        border-radius: 5px;
-                        font-weight: bold;
-                        min-width: 120px;
-                    }
-                """)
-
-                # Tạo nút bấm và đặt màu sắc riêng biệt
+                # Style cho nút bấm không bị trắng
+                confirm.setStyleSheet("QMessageBox { background-color: white; } QPushButton { padding: 8px 20px; font-weight: bold; min-width: 120px; }")
+                
                 yes_button = confirm.addButton("Có, gửi qua Zalo", QMessageBox.YesRole)
-                yes_button.setStyleSheet("background-color: #0068FF; color: white; border: none;") # Màu xanh Zalo
+                yes_button.setStyleSheet("background-color: #0068FF; color: white; border: none;")
                 
                 no_button = confirm.addButton("Không, chỉ lưu thôi", QMessageBox.NoRole)
-                no_button.setStyleSheet("background-color: #E0E0E0; color: #333; border: 1px solid #CCC;") # Màu xám
+                no_button.setStyleSheet("background-color: #E0E0E0; color: #333; border: 1px solid #CCC;")
 
                 confirm.exec()
-
                 if confirm.clickedButton() == yes_button:
-                    folder_path = os.path.dirname(file_path)
-                    os.startfile(folder_path)
+                    os.startfile(os.path.dirname(file_path))
                     webbrowser.open("zalo://")
             else:
                 QMessageBox.critical(self, "Lỗi", "Không thể lưu được ảnh.")
 
     def create_dish_card(self, mon):
-        icons_mua = {
-            "Mùa nước nổi": "🌊", "Mùa mưa": "🌧️", "Mùa khô": "☀️",
-            "Mùa Tết": "🧧", "Mùa trái cây": "🍎"
-        }
-
         card = QFrame()
         card.setMinimumHeight(350)
         card.setStyleSheet("QFrame { background-color: white; border-radius: 20px; border: 1px solid #D1D1D1; } QFrame:hover { border: 2px solid #2E7D32; }")
@@ -120,7 +93,7 @@ class ResultPanel(QWidget):
         main_h_lay.setContentsMargins(20, 20, 20, 20)
         main_h_lay.setSpacing(30)
 
-        # --- BÊN TRÁI ---
+        # --- BÊN TRÁI: HÌNH ẢNH ---
         left_widget = QWidget()
         left_widget.setFixedWidth(600)
         left_lay = QVBoxLayout(left_widget)
@@ -140,7 +113,7 @@ class ResultPanel(QWidget):
         left_lay.addWidget(img_label)
         left_lay.addWidget(name_label)
 
-        # --- BÊN PHẢI ---
+        # --- BÊN PHẢI: THÔNG TIN ---
         right_widget = QWidget()
         right_lay = QVBoxLayout(right_widget)
 
@@ -148,27 +121,34 @@ class ResultPanel(QWidget):
         name.setStyleSheet("font-size: 22px; font-weight: bold; color: #2E7D32;")
         right_lay.addWidget(name)
 
-        icon_m = icons_mua.get(mon.get('mua'), "📅")
-        info_style = "font-size: 14px; color: #444;"
-        right_lay.addWidget(QLabel(f"📍 <b>Tỉnh:</b> {mon['tinh']}", styleSheet=info_style))
-        right_lay.addWidget(QLabel(f"{icon_m} <b>Mùa:</b> {mon.get('mua')}", styleSheet=info_style))
+        # 1. HIỂN THỊ CÂY SUY LUẬN (REASONING EXPLANATION)
+        reasoning_box = QFrame()
+        reasoning_box.setStyleSheet("background-color: #E3F2FD; border-left: 5px solid #2196F3; border-radius: 0px;")
+        res_v_lay = QVBoxLayout(reasoning_box)
+        steps = f"""
+        <div style='line-height: 160%;'>
+            🧠 <b>LỘ TRÌNH SUY LUẬN CHUYÊN GIA:</b><br>
+            ❶ <b>Ngữ cảnh:</b> {mon['tinh']} ➔ {mon.get('mua')} <br>
+            ❷ <b>Phân loại:</b> <span style='color: #E91E63; font-weight: bold;'>{mon.get('loai')}</span><br>
+            ❸ <b>Nguyên liệu chính:</b> {mon.get('nlc')}<br>
+            ❹ <b>Thành phần phụ:</b> {mon.get('nlp')}<br>
+            ❺ <b>Hương vị đặc trưng:</b> {mon.get('vi')}<br>
+            ➔ ✅ <b>KẾT LUẬN:</b> Gợi ý món <b>{mon['ten']}</b>
+        </div>
+        """
+        res_label = QLabel(steps)
+        res_label.setWordWrap(True)
+        res_label.setStyleSheet("border: none; color: #1565C0; font-size: 13px;")
+        res_v_lay.addWidget(res_label)
+        right_lay.addWidget(reasoning_box)
 
-        explanation = QFrame()
-        explanation.setStyleSheet("background-color: #F1F8E9; border-left: 4px solid #4CAF50; border-radius: 0px;")
-        ex_lay = QVBoxLayout(explanation)
-        ex_text = QLabel(f"💡 <b>Lý do gợi ý:</b> Vì bạn thích vị <i>{mon.get('vi',[''])[0]}</i>, hệ thống gợi ý {mon['ten']}.")
-        ex_text.setWordWrap(True)
-        ex_text.setStyleSheet("border: none; color: #2E7D32; font-size: 13px;")
-        ex_lay.addWidget(ex_text)
-        right_lay.addWidget(explanation)
-
+        # Gợi ý phụ & Mô tả
         suggest_text = QLabel(f"🍴 <b>Ăn kèm:</b> {mon.get('ten')} dùng kèm với nước chấm đặc trưng.")
-        suggest_text.setWordWrap(True)
-        suggest_text.setStyleSheet("font-size: 13px; color: #666; font-style: italic;")
+        suggest_text.setStyleSheet("font-size: 13px; color: #666; font-style: italic; margin-top: 5px;")
         right_lay.addWidget(suggest_text)
 
         desc_box = QFrame()
-        desc_box.setStyleSheet("background-color: #F1F8E9; border-radius: 10px; margin-top: 10px;")
+        desc_box.setStyleSheet("background-color: #F1F8E9; border-radius: 10px; margin-top: 5px;")
         desc_lay = QVBoxLayout(desc_box)
         desc_label = QLabel(mon['mo_ta'])
         desc_label.setWordWrap(True)
@@ -177,6 +157,7 @@ class ResultPanel(QWidget):
 
         right_lay.addStretch()
 
+        # Hàng nút bấm
         btn_lay = QHBoxLayout()
         btn_map = QPushButton("📍 XEM ĐỊA CHỈ QUÁN")
         btn_map.setStyleSheet("background-color: #1976D2; color: white; font-weight: bold; padding: 10px; border-radius: 8px;")
