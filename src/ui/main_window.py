@@ -1,7 +1,7 @@
 import os
 import webbrowser
 from PySide6.QtWidgets import *
-from PySide6.QtGui import QPixmap, QPainter, QAction
+from PySide6.QtGui import QPixmap, QPainter
 from PySide6.QtCore import Qt
 
 # Import Panels
@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         self.resize(1100, 800)
         self.showMaximized()
 
-        # Ẩn thanh menu bar mặc định để sử dụng giao diện tùy chỉnh sạch sẽ hơn
+        # Ẩn thanh menu bar mặc định
         self.menuBar().hide() 
 
         self.stack = QStackedWidget()
@@ -42,8 +42,15 @@ class MainWindow(QMainWindow):
         self._init_home_ui()
         self._setup_connections()
 
+    def _setup_input_panel_options(self):
+        """Kết nối nút Tùy chọn bên trong InputPanel với Menu"""
+        if hasattr(self.input_p, 'btn_system_options'):
+            self.input_p.btn_system_options.setStyleSheet(self._get_button_style())
+            # DÒNG QUAN TRỌNG NHẤT: Gán menu cho nút để bấm được
+            self.input_p.btn_system_options.setMenu(self.system_menu)
+
     def _init_home_ui(self):
-        """Thiết kế giao diện trang chủ với menu Tùy chọn to đậm ở góc phải trên"""
+        """Thiết kế giao diện trang chủ với menu Tùy chọn và nút Bắt đầu"""
         main_layout = QVBoxLayout(self.home)
         main_layout.setContentsMargins(25, 25, 25, 25)
 
@@ -51,7 +58,7 @@ class MainWindow(QMainWindow):
         top_layout = QHBoxLayout()
         top_layout.addStretch() 
         
-        # Lấy đường dẫn đến file icon mui_ten
+        # Đường dẫn icon mũi tên (assets/icons/mui_ten.png)
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         icon_path = os.path.normpath(os.path.join(base_dir, "assets", "icons", "mui_ten.png")).replace("\\", "/")
 
@@ -59,7 +66,7 @@ class MainWindow(QMainWindow):
         self.btn_system_options.setFixedSize(145, 40)
         self.btn_system_options.setCursor(Qt.PointingHandCursor)
         
-        # Cập nhật StyleSheet để dùng icon mới, chỉnh kích thước nhỏ lại và xóa khung trắng
+        # StyleSheet: Xóa khung trắng quanh mũi tên, chỉnh mũi tên nhỏ lại
         self.btn_system_options.setStyleSheet(f"""
             QPushButton {{
                 background-color: rgba(0, 0, 0, 0.75);
@@ -72,7 +79,6 @@ class MainWindow(QMainWindow):
             }}
             QPushButton:hover {{ background-color: #2E7D32; }}
             
-            /* Tùy chỉnh dấu mũi nhọn nhỏ lại và xóa khung trắng */
             QPushButton::menu-indicator {{
                 image: url("{icon_path}");
                 subcontrol-origin: padding;
@@ -85,7 +91,7 @@ class MainWindow(QMainWindow):
             }}
         """)
         
-        # Menu thả xuống rõ nét
+        # Menu thả xuống
         system_menu = QMenu(self)
         system_menu.setStyleSheet("""
             QMenu { background-color: white; border: 2px solid #2E7D32; border-radius: 10px; padding: 5px; }
@@ -131,7 +137,7 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(bottom_container)
         main_layout.addStretch()
 
-        # Load ảnh nền
+        # Load ảnh nền trang chủ
         img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", "Trang chủ.png"))
         self.bg_pixmap = QPixmap(img_path)
 
@@ -143,7 +149,7 @@ class MainWindow(QMainWindow):
             ))
 
     def _setup_connections(self):
-        """Kết nối các tín hiệu giữa các màn hình"""
+        """Kết nối tín hiệu giữa các màn hình"""
         self.btn_start.clicked.connect(lambda: self.stack.setCurrentIndex(1))
         self.input_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         self.input_p.submitted.connect(self._on_data_submitted)
@@ -158,24 +164,43 @@ class MainWindow(QMainWindow):
             self.result_p.view_map_signal.connect(self._open_food_map)
 
     def _open_food_map(self, food_query):
-        """Mở Google Maps"""
+        """Mở Google Maps tìm địa chỉ quán ăn"""
         search_url = f"https://www.google.com/maps/search/{food_query}+ngon+nhất"
         webbrowser.open(search_url)
 
+    def _on_exit_app(self):
+        """Xác nhận và hiển thị lời chúc trước khi thoát"""
+        confirm = QMessageBox(self)
+        confirm.setWindowTitle("Xác nhận")
+        confirm.setText("Bạn có chắc chắn muốn thoát ứng dụng không?")
+        confirm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        confirm.setDefaultButton(QMessageBox.No)
+        confirm.button(QMessageBox.Yes).setText("Thoát")
+        confirm.button(QMessageBox.No).setText("Ở lại")
+        
+        if confirm.exec() == QMessageBox.Yes:
+            thanks = QMessageBox(self)
+            thanks.setWindowTitle("Tạm biệt")
+            thanks.setText("Cảm ơn bạn đã tin tưởng lựa chọn chúng tôi!\n\n"
+                          "Chúc bạn sẽ thưởng thức trọn vẹn món ăn và có những kỷ niệm thật đẹp tại vùng đất Chín Rồng.")
+            thanks.setStyleSheet("QLabel{ font-size: 14px; color: #1B5E20; font-weight: bold; }")
+            thanks.exec()
+            QApplication.instance().quit()
+
     def _show_instruction(self):
-        QMessageBox.information(self, "Hướng dẫn sử dụng", 
-            "- Bước 1: Nhấn 'Bắt đầu' để vào giao diện nhập liệu.\n"
+        QMessageBox.information(self, "Hướng dẫn", 
+            "- Bước 1: Nhấn 'Bắt đầu tư vấn' để vào giao diện nhập liệu.\n"
             "- Bước 2: Chọn các tiêu chí món ăn bạn mong muốn.\n"
             "- Bước 3: Xem kết quả và nhấn 'Xem địa chỉ' để tìm quán ăn gần nhất.")
 
     def _show_contact(self):
-        QMessageBox.information(self, "Liên hệ", "Đội ngũ phát triển:\n- Lê Thị Thu Nguyệt - ĐHSTIN23B\n- Nguyễn Tuấn Dinh - ĐHSTIN23B")
+        QMessageBox.information(self, "Liên hệ", "Sinh viên thực hiện:\n- Lê Thị Thu Nguyệt - ĐHSTIN23B\n- Nguyễn Tuấn Dinh - ĐHSTIN23B")
 
     def _show_terms(self):
-        QMessageBox.information(self, "Điều khoản", "Ứng dụng phục vụ mục đích học tập và tham khảo văn hóa ẩm thực.")
+        QMessageBox.information(self, "Điều khoản", "Thông tin tham khảo văn hóa ẩm thực miền Tây.")
 
     def _on_data_submitted(self, criteria):
-        """Xử lý logic khi người dùng nhấn gửi yêu cầu tư vấn"""
+        """Xử lý suy diễn và hiển thị kết quả"""
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
@@ -186,29 +211,17 @@ class MainWindow(QMainWindow):
             lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
             lb_empty.setAlignment(Qt.AlignCenter)
             
+            # Căn giữa dòng chữ trong vùng kết quả
             self.result_p.res_layout.addStretch()
             self.result_p.res_layout.addWidget(lb_empty)
             self.result_p.res_layout.addStretch()
         else:
             self.result_p.show_dishes(results)
 
-    def _on_exit_app(self):
-        """Hiển thị lời cảm ơn và thoát ứng dụng"""
-        msg = QMessageBox(self)
-        msg.setWindowTitle("Tạm biệt")
-        msg.setText("Cảm ơn bạn đã tin tưởng lựa chọn chúng tôi!\n"
-                    "Chúc bạn sẽ thưởng thức trọn vẹn món ăn và có những kỷ niệm thật đẹp tại vùng đất Đồng bằng sông Cửu Long.")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.setStyleSheet("QLabel{ font-size: 14px; color: #1B5E20; font-weight: bold; }")
-        msg.exec()
-        QApplication.instance().quit()
-      
     def keyPressEvent(self, event):
-        """Xử lý các phím tắt toàn cục"""
+        """Phím tắt F11 toàn màn hình"""
         if event.key() == Qt.Key_F11:
-            if self.isFullScreen():
-                self.showMaximized()
-            else:
-                self.showFullScreen()
+            if self.isFullScreen(): self.showMaximized()
+            else: self.showFullScreen()
         elif event.key() == Qt.Key_Escape and self.isFullScreen():
             self.showMaximized()
