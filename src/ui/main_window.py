@@ -42,13 +42,6 @@ class MainWindow(QMainWindow):
         self._init_home_ui()
         self._setup_connections()
 
-    def _setup_input_panel_options(self):
-        """Kết nối nút Tùy chọn bên trong InputPanel với Menu"""
-        if hasattr(self.input_p, 'btn_system_options'):
-            self.input_p.btn_system_options.setStyleSheet(self._get_button_style())
-            # DÒNG QUAN TRỌNG NHẤT: Gán menu cho nút để bấm được
-            self.input_p.btn_system_options.setMenu(self.system_menu)
-
     def _init_home_ui(self):
         """Thiết kế giao diện trang chủ với menu Tùy chọn và nút Bắt đầu"""
         main_layout = QVBoxLayout(self.home)
@@ -197,7 +190,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Liên hệ", "Sinh viên thực hiện:\n- Lê Thị Thu Nguyệt - ĐHSTIN23B\n- Nguyễn Tuấn Dinh - ĐHSTIN23B")
 
     def _show_terms(self):
-        QMessageBox.information(self, "Điều khoản", "Thông tin tham khảo văn hóa ẩm thực miền Tây.")
+        QMessageBox.information(self, "Điều khoản", "Ứng dụng phục vụ mục đích học tập và tham khảo văn hóa ẩm thực.")
 
     def _on_data_submitted(self, criteria):
         """Xử lý suy diễn và hiển thị kết quả"""
