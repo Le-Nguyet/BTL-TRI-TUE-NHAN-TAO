@@ -47,23 +47,41 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout(self.home)
         main_layout.setContentsMargins(25, 25, 25, 25)
 
-        # --- PHẦN 1: NÚT TÙY CHỌN HỆ THỐNG ---
+        # --- PHẦN 1: NÚT TÙY CHỌN HỆ THỐNG (GÓC PHẢI TRÊN) ---
         top_layout = QHBoxLayout()
         top_layout.addStretch() 
         
+        # Lấy đường dẫn đến file icon mui_ten của bạn
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        # Giả sử bạn lưu file tại: assets/images/mui_ten.png (Bạn có thể đổi tên file cho khớp)
+        icon_path = os.path.normpath(os.path.join(base_dir, "assets", "icons", "mui_ten.png")).replace("\\", "/")
+
         self.btn_system_options = QPushButton("⚙️Tùy chọn")
         self.btn_system_options.setFixedSize(145, 40)
         self.btn_system_options.setCursor(Qt.PointingHandCursor)
-        self.btn_system_options.setStyleSheet("""
-            QPushButton {
+        
+        # Cập nhật StyleSheet để dùng icon mới và chỉnh kích thước nhỏ lại
+        self.btn_system_options.setStyleSheet(f"""
+            QPushButton {{
                 background-color: rgba(0, 0, 0, 0.75);
                 color: white;
                 border-radius: 12px;
                 font-weight: 900;
                 font-size: 16px;
                 border: 2px solid white;
-            }
-            QPushButton:hover { background-color: #2E7D32; }
+                padding-right: 20px; /* Tạo khoảng trống cho mũi tên */
+            }}
+            QPushButton:hover {{ background-color: #2E7D32; }}
+            
+            /* Tùy chỉnh dấu mũi nhọn nhỏ lại */
+            QPushButton::menu-indicator {{
+                image: url("{icon_path}");
+                subcontrol-origin: padding;
+                subcontrol-position: right center;
+                right: 10px;   /* Khoảng cách từ lề phải */
+                width: 12px;  /* Chiều rộng icon nhỏ */
+                height: 12px; /* Chiều cao icon nhỏ */
+            }}
         """)
         
         # Menu thả xuống rõ nét
