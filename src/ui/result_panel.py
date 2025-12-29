@@ -20,7 +20,6 @@ class ResultPanel(QWidget):
         ## Cấu hình ScrollArea thông minh
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
-        # ẨN LẰN ĐEN: Tắt hoàn toàn thanh cuộn vật lý nhưng vẫn cuộn được bằng chuột
         self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setStyleSheet("border: none; background: transparent;")
@@ -48,7 +47,6 @@ class ResultPanel(QWidget):
         bottom_layout.addWidget(self.btn_exit) 
         self.layout.addLayout(bottom_layout)
 
-        # Hiệu ứng nhấp nháy khi click
         # Kết nối sự kiện nhấp nháy cho 2 nút điều hướng
         self.btn_back.clicked.connect(lambda: self.flash_effect(self.btn_back, "#2E7D32", "#66BB6A"))
         self.btn_exit.clicked.connect(lambda: self.flash_effect(self.btn_exit, "#C62828", "#EF5350"))
@@ -75,7 +73,6 @@ class ResultPanel(QWidget):
                 border: 2px solid white;
             }
         """)
-
 
     def clear_results(self):
         while self.res_layout.count():
@@ -137,7 +134,7 @@ class ResultPanel(QWidget):
         img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEEEEE;")
 
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", mon.get('hinh_anh', 'default.png')))
+        img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", mon.get('image_path', 'default.png')))
         pixmap = QPixmap(img_path)
         if not pixmap.isNull(): img_label.setPixmap(pixmap)
 
@@ -155,7 +152,7 @@ class ResultPanel(QWidget):
         name.setStyleSheet("font-size: 22px; font-weight: bold; color: #2E7D32;")
         right_lay.addWidget(name)
 
-        # 1. HIỂN THỊ CÂY SUY LUẬN (REASONING EXPLANATION)
+        # 1. HIỂN THỊ CÂY SUY LUẬN 
         reasoning_box = QFrame()
         reasoning_box.setStyleSheet("background-color: #E3F2FD; border-left: 5px solid #2196F3; border-radius: 0px;")
         res_v_lay = QVBoxLayout(reasoning_box)
@@ -197,7 +194,6 @@ class ResultPanel(QWidget):
         suggest_text.setStyleSheet("font-size: 13px; color: #666; font-style: italic; margin-top: 5px;")
         right_lay.addWidget(suggest_text)
 
-
         # 3. KẾT LUẬN & ĐÁNH GIÁ PHÙ HỢP
         match_box = QLabel(f"""
             <div style='margin-top: 10px; line-height: 140%; color: #E65100;'>
@@ -209,9 +205,7 @@ class ResultPanel(QWidget):
         match_box.setWordWrap(True)
         right_lay.addWidget(match_box)
 
-        right_lay.addStretch()
-
-        
+        right_lay.addStretch()   
 
         # Hàng nút bấm
         btn_lay = QHBoxLayout()

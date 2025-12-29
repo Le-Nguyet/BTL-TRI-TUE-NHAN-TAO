@@ -9,7 +9,7 @@ from src.ui.input_panel import InputPanel
 from src.ui.result_panel import ResultPanel
 
 # Import dữ liệu và logic suy diễn
-from src.logic.knowledge_base import DATA_MON_AN
+from src.logic.knowledge_base import get_data_from_db
 from src.logic.inference_engine import infer_dishes
 
 class MainWindow(QMainWindow):
@@ -200,24 +200,21 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Điều khoản", "Ứng dụng phục vụ mục đích học tập và tham khảo văn hóa ẩm thực.")
 
     def _on_data_submitted(self, criteria):
-        """Xử lý suy diễn và hiển thị kết quả"""
+        """Thực hiện suy diễn tri thức và hiển thị kết quả"""
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
-        results = infer_dishes(criteria, DATA_MON_AN)
+        # Lấy dữ liệu mới nhất từ Database và thực hiện suy diễn
+        results = infer_dishes(criteria, None)
         
         if results:
-            self.last_dish = results[0]['ten']  # Lưu lại để làm Ending Card
             self.result_p.show_dishes(results)
         else:
-            lb_empty = QLabel("😔 Rất tiếc, không tìm thấy món ăn nào khớp với lựa chọn của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
-            lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
-            lb_empty.setAlignment(Qt.AlignCenter)
-            
-            # Căn giữa dòng chữ trong vùng kết quả
-            self.result_p.res_layout.addStretch()
-            self.result_p.res_layout.addWidget(lb_empty)
-            self.result_p.res_layout.addStretch()
+            # Thông báo khi không tìm thấy kết quả
+            msg = QLabel("😔 Hệ thống chưa tìm thấy món ăn phù hợp với yêu cầu của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
+            msg.setStyleSheet("font-size: 18px; color: #555; font-weight: bold;")
+            msg.setAlignment(Qt.AlignCenter)
+            self.result_p.res_layout.addWidget(msg)
 
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""

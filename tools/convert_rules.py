@@ -1,45 +1,81 @@
 import re
+import os
+import sqlite3
+from src.logic.knowledge_base import MAPPER
 
-# Bộ từ điển chuyển đổi (Dựa trên file DOCX của bạn)
-MAPPER = {
-    'T1': 'Long An', 'T3': 'Đồng Tháp', 'T4': 'An Giang', 'T9': 'Kiên Giang', 'T10': 'Cần Thơ', 'T13': 'Sóc Trăng',
-    'L1': 'Món nước', 'L2': 'Món khô', 'L4': 'Món gỏi', 'L7': 'Món hấp', 'L8': 'Món lẩu', 'L9': 'Món cháo', 'L10': 'Món bánh',
-    'M1': 'Mùa nước nổi', 'M2': 'Mùa mưa', 'M3': 'Mùa khô', 'M4': 'Mùa Tết', 'M5': 'Mùa trái cây',
-    'N1': 'Hải sản', 'N2': 'Cá', 'N3': 'Bún', 'N5': 'Bánh tằm', 'N6': 'Bột', 'N9': 'Thịt',
-    'P2': 'Mắm', 'P3': 'Bông điên điển', 'P5': 'Rau đắng', 'P7': 'Rau củ quả', 'P8': 'Chao',
-    'V1': 'Cay', 'V2': 'Ngọt', 'V3': 'Chua', 'V4': 'Mặn', 'V5': 'Béo', 'V8': 'Đắng'
-}
+# Đường dẫn file
+DB_PATH = os.path.join("data", "monan.db")
+RULES_FILE = "raw_rules.txt"
 
-def convert_rules():
-    input_file = "raw_rules.txt"
-    rules_converted = []
-    
-    # Regex bắt 6 yếu tố: T, L, M, N, P, V và kết quả D
-    pattern = r"(T\d+)\s*\^\s*(L\d+)\s*\^\s*(M\d+)\s*\^\s*(N\d+)\s*\^\s*(P\d+)\s*\^\s*(V\d+)\s*=>\s*(D\d+)"
+# 1. TẠO BẢN ĐỒ NGƯỢC 
+INVERSE_MAPPER = {v: k for k, v in MAPPER.items()}
+
+def check_sync_with_db():
+    """
+    Hàm này dùng để KIỂM TRA xem 25 luật trong raw_rules.txt 
+    có khớp với dữ liệu thực tế trong monan.db hay không.
+    """
+    if not os.path.exists(RULES_FILE):
+        print("❌ Không tìm thấy file raw_rules.txt")
+        return
+
+    print("🔍 Đang kiểm tra tính nhất quán của hệ chuyên gia...")
     
     try:
-        with open(input_file, "r", encoding="utf-8") as f:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM products")
+        db_ids = {row[0] for row in cursor.fetchall()}
+        conn.close()
+
+        with open(RULES_FILE, "r", encoding="utf-8") as f:
+            rules_content = f.readlines()
+
+        missing_in_db = []
+        for line in rules_content:
+            match = re.search(r"=>\s*(D\d+)", line)
+            if match:
+                rule_id = match.group(1)
+                if rule_id not in db_ids:
+                    missing_in_db.append(rule_id)
+
+        if missing_in_db:
+            print(f"⚠️ CẢNH BÁO: Các món {set(missing_in_db)} có trong LUẬT nhưng thiếu trong DATABASE!")
+            print("👉 Bạn cần nạp thêm các món này vào file Excel để hiển thị được ảnh/mô tả.")
+        else:
+            print("✅ Tuyệt vời! Tất cả các luật đều có dữ liệu tương ứng trong Database.")
+
+    except Exception as e:
+        print(f"❌ Lỗi: {e}")
+
+def convert_rules_to_vietnamese():
+    """Giải mã 25 luật của bạn sang tiếng Việt để đọc hiểu"""
+    rules_converted = []
+    pattern = r"(T\d+)\s*\^\s*(L\d+)\s*\^\s*(M\d+)\s*\^\s*(N\d+)\s*\^\s*(P\d+)\s*\^\s*(V\d+)\s*=>\s*(D\d+)"
+    
+    if not os.path.exists(RULES_FILE):
+        return []
+
+    try:
+        with open(RULES_FILE, "r", encoding="utf-8") as f:
             for line in f:
                 match = re.search(pattern, line)
                 if match:
                     t, l, m, n, p, v, d = match.groups()
                     rule = {
-                        "tinh": MAPPER.get(t),
-                        "loai": MAPPER.get(l),
-                        "mua": MAPPER.get(m),
-                        "nlc": MAPPER.get(n),
-                        "nlp": MAPPER.get(p),
-                        "vi": MAPPER.get(v),
+                        "tinh": MAPPER.get(t, f"Lỗi({t})"),
+                        "loai": MAPPER.get(l, f"Lỗi({l})"),
+                        "mua": MAPPER.get(m, f"Lỗi({m})"),
+                        "nlc": MAPPER.get(n, f"Lỗi({n})"),
+                        "nlp": MAPPER.get(p, f"Lỗi({p})"),
+                        "vi": MAPPER.get(v, f"Lỗi({v})"),
                         "id_mon": d
                     }
                     rules_converted.append(rule)
         
-        print(f"✅ Đã chuyển đổi thành công {len(rules_converted)} luật sang tiếng Việt.")
+        print(f"✅ Đã giải mã {len(rules_converted)} luật hiện có.")
         return rules_converted
     except Exception as e:
-        print(f"❌ Lỗi: {e}")
+        print(f"❌ Lỗi giải mã: {e}")
         return []
 
-if __name__ == "__main__":
-    data = convert_rules()
-    for r in data[:3]: print(r) # Xem thử 3 luật đầu
