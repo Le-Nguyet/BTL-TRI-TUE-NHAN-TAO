@@ -94,7 +94,7 @@ class InputPanel(QWidget):
         self.group_mua = QButtonGroup(self)
         self.group_mua.setExclusive(True)
         grid_mua = QGridLayout()
-        mua_opts = ["Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa Tết", "Mùa trái cây"]
+        mua_opts = ["Mùa nước nổi", "Mùa mưa", "Mùa khô", "Mùa Tết", "Mùa trái cây", " Quanh năm"]
         for i, text in enumerate(mua_opts):
             chk = QCheckBox(text)
             chk.setStyleSheet(checkbox_style)
