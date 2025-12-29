@@ -1,181 +1,149 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox, simpledialog
+import pandas as pd
 import sqlite3
 import os
 
-# Đường dẫn file database
+# --- CẤU HÌNH ĐƯỜNG DẪN ---
 DB_PATH = os.path.join("data", "monan.db")
 
-# Đảm bảo thư mục data tồn tại
-if not os.path.exists("data"):
-    os.makedirs("data")
-
-def create_database():
-    # 1. Kết nối và xóa bảng cũ nếu tồn tại để cập nhật cấu trúc mới
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS products")
-
-    # 2. Tạo bảng products với nlc và nlp 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS products (
-        id TEXT PRIMARY KEY,
-        ten TEXT,
-        loai TEXT,
-        vi TEXT,
-        tinh TEXT,
-        mua TEXT,
-        nlc TEXT,
-        nlp TEXT,
-        mo_ta TEXT,
-        image_path TEXT
-    )
-    """)
-
-    # 3. Dữ liệu chuẩn khớp với MAPPER và raw_rules 
-    DATA_RAW = [
-        {
-            "id": "D1",
-            "ten": "Canh chua cá linh bông điên điển",
-            "loai": "Món nước",
-            "vi": ["Chua", "Ngọt"],
-            "tinh": "An Giang",
-            "mua": "Mùa nước nổi",
-            "nlc": "Cá",
-            "nlp": "Bông điên điển",
-            "mo_ta": "Món ăn đặc trưng của mùa nước nổi với vị chua thanh và hoa điên điển vàng rực.",
-            "hinh_anh": "D1.png"
-        },
-        {
-            "id": "D2",
-            "ten": "Nem chua Lai Vung",
-            "loai": "Món khô",
-            "vi": ["Chua", "Cay", "Mặn"],
-            "tinh": "Đồng Tháp",
-            "mua": "Mùa Tết",
-            "nlc": "Thịt",
-            "nlp": "Chao",
-            "mo_ta": "Đặc sản nổi tiếng với vị chua thanh, giòn sần sật của bì heo và nồng nàn vị tỏi ớt.",
-            "hinh_anh": "D2.png"
-        },
-        {
-            "id": "D3",
-            "ten": "Lẩu cá kèo lá giang",
-            "loai": "Món lẩu",
-            "vi": ["Chua", "Ngọt"],
-            "tinh": "Sóc Trăng",
-            "mua": ["Mùa mưa", "Mùa nước nổi", "Mùa Tết"],
-            "nlc": "Cá",
-            "nlp": "Rau đắng",
-            "mo_ta": "Sự kết hợp hoàn hảo giữa cá kèo tươi sống và vị chua đặc trưng của lá giang.",
-            "hinh_anh": "D3.png"
-        },
-        {
-            "id": "D4",
-            "ten": "Gỏi xoài cá sặc",
-            "loai": "Món gỏi",
-            "vi": ["Chua", "Ngọt", "Mặn"],
-            "tinh": "Long An",
-            "mua": "Mùa trái cây",
-            "nlc": "Cá",
-            "nlp": "Rau củ quả",
-            "mo_ta": "Vị chua của xoài xanh hòa quyện cùng vị mặn đặc trưng của khô cá sặc nướng.",
-            "hinh_anh": "D4.png"
-        },
-        {
-            "id": "D5",
-            "ten": "Cháo cá lóc rau đắng",
-            "loai": "Món cháo",
-            "vi": ["Đắng", "Ngọt", "Mặn"],
-            "tinh": "Long An",
-            "mua": "Mùa mưa",
-            "nlc": "Cá",
-            "nlp": "Rau đắng",
-            "mo_ta": "Món ăn ấm bụng ngày mưa với cá lóc đồng và rau đắng đất giải nhiệt.",
-            "hinh_anh": "D5.png"
-        },
-        {
-            "id": "D6",
-            "ten": "Bánh Pía",
-            "loai": "Tráng miệng",
-            "vi": ["Ngọt", "Béo"],
-            "tinh": "Sóc Trăng",
-            "mua": "Mùa Tết",
-            "nlc": "Bột",
-            "nlp": "Rau củ quả",
-            "mo_ta": "Vỏ bánh nhiều lớp mỏng bao bọc nhân sầu riêng và trứng muối béo ngậy.",
-            "hinh_anh": "D6.png"
-        },
-        {
-            "id": "D7",
-            "ten": "Bún kèn Hà Tiên",
-            "loai": "Món nước",
-            "vi": ["Béo", "Mặn", "Cay"],
-            "tinh": "Kiên Giang",
-            "mua": "Mùa khô",
-            "nlc": "Cá",
-            "nlp": "Rau củ quả",
-            "mo_ta": "Nước dùng sền sệt từ cá xay nhuyễn và cốt dừa thơm béo.",
-            "hinh_anh": "D7.png"
-        },
-        {
-            "id": "D8",
-            "ten": "Bánh tằm bì",
-            "loai": "Món bánh",
-            "vi": ["Béo", "Mặn", "Ngọt"],
-            "tinh": "Cần Thơ",
-            "mua": "Quanh năm",
-            "nlc": "Bánh tằm",
-            "nlp": "Rau củ quả",
-            "mo_ta": "Sợi bánh tằm trắng ngần ăn kèm bì heo và nước cốt dừa đậm đà.",
-            "hinh_anh": "D8.png"
-        },
-        {
-            "id": "D9",
-            "ten": "Bún nước lèo Sóc Trăng",
-            "loai": "Món nước",
-            "vi": ["Mặn", "Ngọt"],
-            "tinh": "Sóc Trăng",
-            "mua": ["Mùa mưa", "Mùa khô"],
-            "nlc": "Cá",
-            "nlp": "Mắm",
-            "mo_ta": "Hương vị nồng nàn từ mắm bò hóc kết hợp với ngải bún và cá lóc đồng.",
-            "hinh_anh": "D9.png"
-        },
-        {
-            "id": "D10",
-            "ten": "Mực trứng nhồi nhum biển",
-            "loai": "Món khô",
-            "vi": ["Ngọt", "Béo", "Mặn"],
-            "tinh": "Kiên Giang",
-            "mua": "Mùa khô",
-            "nlc": "Hải sản",
-            "nlp": "Rau củ quả",
-            "mo_ta": "Đặc sản biển Phú Quốc với sự hòa quyện giữa mực tươi và nhum biển giàu dinh dưỡng.",
-            "hinh_anh": "D10.png"
-        }
-    ]
-
-    # Chuẩn bị dữ liệu để đưa vào SQL
-    processed_data = []
-    for m in DATA_RAW:
-        # Chuyển đổi list thành chuỗi để lưu vào SQLite
-        vi_str = ", ".join(m["vi"]) if isinstance(m["vi"], list) else m["vi"]
-        mua_str = ", ".join(m["mua"]) if isinstance(m["mua"], list) else m["mua"]
+# --- 1. CHỨC NĂNG DỌN DẸP DATABASE (CLEAN UP) ---
+def clean_database():
+    """Xóa các dòng rác không đúng định dạng ID (bắt đầu bằng D) trong database"""
+    try:
+        if not os.path.exists(DB_PATH):
+            return
+            
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
         
-        processed_data.append((
-            m["id"], m["ten"], m["loai"], vi_str, m["tinh"], 
-            mua_str, m["nlc"], m["nlp"], m["mo_ta"], m["hinh_anh"]
-        ))
+        # Lệnh SQL: Xóa những dòng mà ID không bắt đầu bằng chữ 'D'
+        cursor.execute("DELETE FROM products WHERE id NOT LIKE 'D%'")
+        
+        so_luong_xoa = cursor.rowcount
+        conn.commit()
+        conn.close()
+        if so_luong_xoa > 0:
+            print(f"✅ Đã dọn dẹp hệ thống! Đã xóa {so_luong_xoa} dòng dữ liệu rác hiện có.")
+    except Exception as e:
+        print(f"❌ Lỗi khi dọn dẹp database: {e}")
 
-    # 4. Thực hiện Insert dữ liệu 
-    cursor.executemany("""
-    INSERT OR REPLACE INTO products (id, ten, loai, vi, tinh, mua, nlc, nlp, mo_ta, image_path)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, processed_data)
+# --- 2. CHỨC NĂNG XÓA MỘT MÓN CỤ THỂ THEO ID ---
+def delete_specific_item():
+    """Cho phép người dùng nhập ID để xóa thủ công một món lỗi"""
+    id_to_delete = simpledialog.askstring("Xóa món ăn", "Nhập mã ID cần xóa (ví dụ: D11):")
+    
+    if id_to_delete:
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Kiểm tra xem ID có tồn tại không
+            cursor.execute("SELECT ten FROM products WHERE id = ?", (id_to_delete,))
+            result = cursor.fetchone()
+            
+            if result:
+                confirm = messagebox.askyesno("Xác nhận", f"Bạn có chắc muốn xóa món '{result[0]}' (ID: {id_to_delete})?")
+                if confirm:
+                    cursor.execute("DELETE FROM products WHERE id = ?", (id_to_delete,))
+                    conn.commit()
+                    messagebox.showinfo("Thành công", f"Đã xóa món {id_to_delete} khỏi hệ thống.")
+            else:
+                messagebox.showwarning("Thông báo", f"Không tìm thấy món nào có ID: {id_to_delete}")
+            
+            conn.close()
+        except Exception as e:
+            messagebox.showerror("Lỗi", f"Không thể xóa: {e}")
 
-    conn.commit()
-    conn.close()
-    print(">>> Đã khởi tạo Database thành công tại: data/monan.db")
-    print(f">>> Đã cập nhật {len(DATA_RAW)} món với các trường nlc và nlp.")
+# --- 3. CHỨC NĂNG NẠP FILE CSV HÀNG LOẠT ---
+def browse_file():
+    """Mở cửa sổ chọn file từ máy tính"""
+    file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+    if file_path:
+        lbl_file_path.config(text=os.path.basename(file_path))
+        btn_import.config(state="normal", command=lambda: import_csv(file_path))
 
+def import_csv(file_path):
+    """Đọc và nạp dữ liệu từ file CSV vào Database"""
+    try:
+        # Đọc file CSV bằng pandas với encoding utf-8
+        df = pd.read_csv(file_path, encoding='utf-8')
+        
+        # TỰ ĐỘNG LỌC DỮ LIỆU LỖI TRONG FILE TRƯỚC KHI NẠP
+        df['id'] = df['id'].astype(str)
+        df_clean = df[df['id'].str.startswith('D', na=False)]
+        
+        trash_count = len(df) - len(df_clean)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        success_count = 0
+        duplicate_count = 0
+
+        for _, row in df_clean.iterrows():
+            # Kiểm tra trùng ID trước khi nạp
+            cursor.execute("SELECT id FROM products WHERE id = ?", (row['id'],))
+            if cursor.fetchone():
+                duplicate_count += 1
+                continue
+            
+            # Nạp dữ liệu vào database (Khớp với các trường bạn đã tạo)
+            cursor.execute("""
+                INSERT INTO products (id, ten, loai, vi, tinh, mua, nlc, nlp, mo_ta, image_path)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (row['id'], row['ten'], row['loai'], row['vi'], row['tinh'], 
+                  row['mua'], row['nlc'], row['nlp'], row['mo_ta'], row['image_path']))
+            success_count += 1
+
+        conn.commit()
+        conn.close()
+        
+        # Thông báo kết quả
+        msg = f"✅ Nạp thành công: {success_count} món\n"
+        msg += f"⚠️ Bỏ qua (trùng ID): {duplicate_count} dòng\n"
+        if trash_count > 0:
+            msg += f"🧹 Đã lọc bỏ {trash_count} dòng rác từ file CSV."
+            
+        messagebox.showinfo("Kết quả nạp dữ liệu", msg)
+        
+    except Exception as e:
+        messagebox.showerror("Lỗi", f"Không thể xử lý dữ liệu: {e}")
+
+# --- 4. GIAO DIỆN CHÍNH (GUI) ---
 if __name__ == "__main__":
-    create_database()
+    # Tự động dọn dẹp các dòng rác trong database ngay khi mở ứng dụng
+    clean_database()
+
+    root = tk.Tk()
+    root.title("Quản lý tri thức Hệ chuyên gia")
+    root.geometry("450x400")
+    root.configure(bg="#f0f0f0")
+
+    # Tiêu đề
+    tk.Label(root, text="HỆ THỐNG QUẢN TRỊ TRI THỨC", font=("Arial", 14, "bold"), bg="#f0f0f0").pack(pady=20)
+
+    # --- Khu vực nạp file ---
+    frame_import = tk.LabelFrame(root, text="Nạp dữ liệu hàng loạt", padx=10, pady=10)
+    frame_import.pack(fill="x", padx=20, pady=5)
+
+    btn_browse = tk.Button(frame_import, text="📁 Chọn file CSV", command=browse_file, width=15)
+    btn_browse.pack(pady=5)
+
+    lbl_file_path = tk.Label(frame_import, text="Chưa chọn file", fg="grey", font=("Arial", 9, "italic"))
+    lbl_file_path.pack()
+
+    btn_import = tk.Button(frame_import, text="🚀 BẮT ĐẦU NẠP", state="disabled", 
+                           bg="#27ae60", fg="white", font=("Arial", 10, "bold"))
+    btn_import.pack(pady=10)
+
+    # --- Khu vực quản lý món lẻ ---
+    frame_manage = tk.LabelFrame(root, text="Quản lý món lẻ", padx=10, pady=10)
+    frame_manage.pack(fill="x", padx=20, pady=15)
+
+    tk.Label(frame_manage, text="Xóa món sai lỗi bằng cách nhập mã ID:").pack()
+    btn_delete = tk.Button(frame_manage, text="🗑️ Xóa món theo ID", command=delete_specific_item, 
+                           bg="#e74c3c", fg="white", width=20)
+    btn_delete.pack(pady=10)
+
+    root.mainloop()
