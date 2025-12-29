@@ -16,7 +16,6 @@ def get_data_from_db():
     cursor.execute("SELECT * FROM products")
     rows = cursor.fetchall()
     
-    # Chuyển đổi từ Row sang Dictionary để tương thích với code giao diện hiện tại
     data = []
     for row in rows:
         item = dict(row)
