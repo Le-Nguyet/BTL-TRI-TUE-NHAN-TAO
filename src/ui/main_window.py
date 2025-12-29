@@ -211,10 +211,14 @@ class MainWindow(QMainWindow):
             self.result_p.show_dishes(results)
         else:
             # Thông báo khi không tìm thấy kết quả
-            msg = QLabel("😔 Hệ thống chưa tìm thấy món ăn phù hợp với yêu cầu của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
-            msg.setStyleSheet("font-size: 18px; color: #555; font-weight: bold;")
-            msg.setAlignment(Qt.AlignCenter)
-            self.result_p.res_layout.addWidget(msg)
+            lb_empty = QLabel("😔 Rất tiếc, hệ thống chưa tìm thấy món ăn phù hợp với yêu cầu của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
+            lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
+            lb_empty.setAlignment(Qt.AlignCenter)
+            
+            # Căn giữa dòng chữ trong vùng kết quả
+            self.result_p.res_layout.addStretch()
+            self.result_p.res_layout.addWidget(lb_empty)
+            self.result_p.res_layout.addStretch()
 
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""
