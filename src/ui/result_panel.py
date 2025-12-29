@@ -1,9 +1,8 @@
 import os
 import webbrowser
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
-                             QScrollArea, QFrame, QHBoxLayout, QMessageBox, QFileDialog)
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap, QFont, QGuiApplication
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
 
 class ResultPanel(QWidget):
     view_map_signal = Signal(str)
@@ -18,30 +17,65 @@ class ResultPanel(QWidget):
         self.title.setStyleSheet("font-size: 28px; font-weight: bold; color: #1B5E20; margin-bottom: 10px;")
         self.layout.addWidget(self.title, alignment=Qt.AlignCenter)
 
+        ## Cấu hình ScrollArea thông minh
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
+        # ẨN LẰN ĐEN: Tắt hoàn toàn thanh cuộn vật lý nhưng vẫn cuộn được bằng chuột
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setStyleSheet("border: none; background: transparent;")
 
         self.res_container = QWidget()
         self.res_layout = QVBoxLayout(self.res_container)
-        self.res_layout.setSpacing(20)
+        self.res_layout.setSpacing(15)
         self.res_layout.setAlignment(Qt.AlignTop)
 
         self.scroll.setWidget(self.res_container)
         self.layout.addWidget(self.scroll)
 
+       # --- ĐỊNH VỊ NÚT BẤM DƯỚI CÙNG ---
         bottom_layout = QHBoxLayout()
         self.btn_back = QPushButton("🔍 TÌM KIẾM LẠI")
         self.btn_exit = QPushButton("❌ THOÁT")
+        
         btn_style = "padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px;"
         self.btn_back.setStyleSheet(btn_style + "background-color: #2E7D32; color: white;")
         self.btn_exit.setStyleSheet(btn_style + "background-color: #C62828; color: white;")
-        
-        bottom_layout.addStretch()
-        bottom_layout.addWidget(self.btn_back)
-        bottom_layout.addWidget(self.btn_exit)
-        bottom_layout.addStretch()
+
+        # Tìm kiếm lại bên trái, Thoát bên phải
+        bottom_layout.addWidget(self.btn_back) 
+        bottom_layout.addStretch() 
+        bottom_layout.addWidget(self.btn_exit) 
         self.layout.addLayout(bottom_layout)
+
+        # Hiệu ứng nhấp nháy khi click
+        # Kết nối sự kiện nhấp nháy cho 2 nút điều hướng
+        self.btn_back.clicked.connect(lambda: self.flash_effect(self.btn_back, "#2E7D32", "#66BB6A"))
+        self.btn_exit.clicked.connect(lambda: self.flash_effect(self.btn_exit, "#C62828", "#EF5350"))
+
+   # SỬ DỤNG QSS ĐỂ TẠO HIỆU ỨNG NHẤP NHÁY KHI HOVER (LIA CHUỘT)
+        self.btn_back.setStyleSheet("""
+            QPushButton {
+                padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; 
+                background-color: #2E7D32; color: white;
+            }
+            QPushButton:hover {
+                background-color: #45a049;  /* Màu sáng hơn khi lia chuột tới */
+                border: 2px solid white;
+            }
+        """)
+
+        self.btn_exit.setStyleSheet("""
+            QPushButton {
+                padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; 
+                background-color: #C62828; color: white;
+            }
+            QPushButton:hover {
+                background-color: #e53935;  /* Màu đỏ tươi hơn khi lia chuột tới */
+                border: 2px solid white;
+            }
+        """)
+
 
     def clear_results(self):
         while self.res_layout.count():
@@ -108,7 +142,7 @@ class ResultPanel(QWidget):
         if not pixmap.isNull(): img_label.setPixmap(pixmap)
 
         name_label = QLabel(mon['ten'].upper())
-        name_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #1B5E20; margin-top: 10px;")
+        name_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #E91E63; margin-top: 10px;")
         name_label.setAlignment(Qt.AlignCenter)
         left_lay.addWidget(img_label)
         left_lay.addWidget(name_label)
@@ -125,14 +159,30 @@ class ResultPanel(QWidget):
         reasoning_box = QFrame()
         reasoning_box.setStyleSheet("background-color: #E3F2FD; border-left: 5px solid #2196F3; border-radius: 0px;")
         res_v_lay = QVBoxLayout(reasoning_box)
+        
+        # 2. GÓC NHÌN HỆ CHUYÊN GIA
+        expert_box = QFrame()
+        expert_box.setStyleSheet("background-color: #F1F8E9; border-left: 5px solid #4CAF50; border-radius: 0px; margin-top: 10px;")
+        expert_lay = QVBoxLayout(expert_box)
+        expert_text = f"""
+        <div style='line-height: 150%;'>
+            <b style='color: #1B5E20;'>❶ GÓC NHÌN "HỆ CHUYÊN GIA"</b><br>
+            • <b> {mon.get('mo_ta', 'Đang cập nhật mô tả chuyên sâu...')}<br>
+        </div>
+        """
+        expert_label = QLabel(expert_text)
+        expert_label.setWordWrap(True)
+        expert_lay.addWidget(expert_label)
+        right_lay.addWidget(expert_box)
+
         steps = f"""
         <div style='line-height: 160%;'>
-            🧠 <b>LỘ TRÌNH SUY LUẬN CHUYÊN GIA:</b><br>
-            ❶ <b>Ngữ cảnh:</b> {mon['tinh']} ➔ {mon.get('mua')} <br>
-            ❷ <b>Phân loại:</b> <span style='color: #E91E63; font-weight: bold;'>{mon.get('loai')}</span><br>
-            ❸ <b>Nguyên liệu chính:</b> {mon.get('nlc')}<br>
-            ❹ <b>Thành phần phụ:</b> {mon.get('nlp')}<br>
-            ❺ <b>Hương vị đặc trưng:</b> {mon.get('vi')}<br>
+            ❷ 🧠 <b>LỘ TRÌNH SUY LUẬN CHUYÊN GIA:</b><br>
+            • <b>Ngữ cảnh:</b> {mon['tinh']} ➔ {mon.get('mua')} <br>
+            • <b>Phân loại:</b> {mon.get('loai')}<br>
+            • <b>Nguyên liệu chính:</b> {mon.get('nlc')}<br>
+            • <b>Thành phần phụ:</b> {mon.get('nlp')}<br>
+            • <b>Hương vị đặc trưng:</b> {mon.get('vi')}<br>
             ➔ ✅ <b>KẾT LUẬN:</b> Gợi ý món <b>{mon['ten']}</b>
         </div>
         """
@@ -147,15 +197,21 @@ class ResultPanel(QWidget):
         suggest_text.setStyleSheet("font-size: 13px; color: #666; font-style: italic; margin-top: 5px;")
         right_lay.addWidget(suggest_text)
 
-        desc_box = QFrame()
-        desc_box.setStyleSheet("background-color: #F1F8E9; border-radius: 10px; margin-top: 5px;")
-        desc_lay = QVBoxLayout(desc_box)
-        desc_label = QLabel(mon['mo_ta'])
-        desc_label.setWordWrap(True)
-        desc_lay.addWidget(desc_label)
-        right_lay.addWidget(desc_box)
+
+        # 3. KẾT LUẬN & ĐÁNH GIÁ PHÙ HỢP
+        match_box = QLabel(f"""
+            <div style='margin-top: 10px; line-height: 140%; color: #E65100;'>
+                <b>❸ TẠI SAO MÓN NÀY KHỚP VỚI BẠN?</b><br>
+                ✅ Hệ thống đã lọc bỏ các món khác để chọn ra đặc sản <b>{mon['ten']}</b> 
+                phù hợp nhất với vùng đất {mon['tinh']} bạn tìm kiếm.
+            </div>
+        """)
+        match_box.setWordWrap(True)
+        right_lay.addWidget(match_box)
 
         right_lay.addStretch()
+
+        
 
         # Hàng nút bấm
         btn_lay = QHBoxLayout()
