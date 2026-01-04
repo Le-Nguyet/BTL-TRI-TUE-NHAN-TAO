@@ -17,11 +17,9 @@ class ResultPanel(QWidget):
         self.title.setStyleSheet("font-size: 28px; font-weight: bold; color: #1B5E20; margin-bottom: 10px;")
         self.layout.addWidget(self.title, alignment=Qt.AlignCenter)
 
-        ## Cấu hình ScrollArea thông minh
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setStyleSheet("border: none; background: transparent;")
 
         self.res_container = QWidget()
@@ -32,47 +30,26 @@ class ResultPanel(QWidget):
         self.scroll.setWidget(self.res_container)
         self.layout.addWidget(self.scroll)
 
-       # --- ĐỊNH VỊ NÚT BẤM DƯỚI CÙNG ---
         bottom_layout = QHBoxLayout()
         self.btn_back = QPushButton("🔍 TÌM KIẾM LẠI")
         self.btn_exit = QPushButton("❌ THOÁT")
         
-        btn_style = "padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px;"
-        self.btn_back.setStyleSheet(btn_style + "background-color: #2E7D32; color: white;")
-        self.btn_exit.setStyleSheet(btn_style + "background-color: #C62828; color: white;")
+        # Kết nối sự kiện và khắc phục lỗi AttributeError bằng cách thêm hàm flash_effect phía dưới
+        self.btn_back.clicked.connect(lambda: self.flash_effect(self.btn_back, "#2E7D32", "#66BB6A"))
+        self.btn_exit.clicked.connect(lambda: self.flash_effect(self.btn_exit, "#C62828", "#EF5350"))
 
-        # Tìm kiếm lại bên trái, Thoát bên phải
+        self.btn_back.setStyleSheet("QPushButton { padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; background-color: #2E7D32; color: white; } QPushButton:hover { background-color: #45a049; }")
+        self.btn_exit.setStyleSheet("QPushButton { padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; background-color: #C62828; color: white; } QPushButton:hover { background-color: #e53935; }")
+
         bottom_layout.addWidget(self.btn_back) 
         bottom_layout.addStretch() 
         bottom_layout.addWidget(self.btn_exit) 
         self.layout.addLayout(bottom_layout)
 
-        # Kết nối sự kiện nhấp nháy cho 2 nút điều hướng
-        self.btn_back.clicked.connect(lambda: self.flash_effect(self.btn_back, "#2E7D32", "#66BB6A"))
-        self.btn_exit.clicked.connect(lambda: self.flash_effect(self.btn_exit, "#C62828", "#EF5350"))
-
-   # SỬ DỤNG QSS ĐỂ TẠO HIỆU ỨNG NHẤP NHÁY KHI HOVER (LIA CHUỘT)
-        self.btn_back.setStyleSheet("""
-            QPushButton {
-                padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; 
-                background-color: #2E7D32; color: white;
-            }
-            QPushButton:hover {
-                background-color: #45a049;  /* Màu sáng hơn khi lia chuột tới */
-                border: 2px solid white;
-            }
-        """)
-
-        self.btn_exit.setStyleSheet("""
-            QPushButton {
-                padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; 
-                background-color: #C62828; color: white;
-            }
-            QPushButton:hover {
-                background-color: #e53935;  /* Màu đỏ tươi hơn khi lia chuột tới */
-                border: 2px solid white;
-            }
-        """)
+    # HÀM KHẮC PHỤC LỖI: AttributeError
+    def flash_effect(self, button, original_color, flash_color):
+        button.setStyleSheet(f"padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; background-color: {flash_color}; color: white;")
+        QTimer.singleShot(150, lambda: button.setStyleSheet(f"QPushButton {{ padding: 12px 30px; font-weight: bold; border-radius: 10px; font-size: 15px; background-color: {original_color}; color: white; }} QPushButton:hover {{ border: 2px solid white; }}"))
 
     def clear_results(self):
         while self.res_layout.count():
