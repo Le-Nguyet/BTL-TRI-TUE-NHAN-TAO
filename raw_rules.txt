@@ -1,6 +1,6 @@
-T4 ^ L1 ^ M1 ^ N2 ^ P7 ^ V3 => D1
-T4 ^ L1 ^ M1 ^ N2 ^ P7 ^ V2 => D1
-T4 ^ L1 ^ M1 ^ N2 ^ P7 ^ V5 => D1
+T4 ^ L1 ^ M1 ^ N2 ^ P3 ^ V3 => D1
+T4 ^ L1 ^ M1 ^ N2 ^ P3 ^ V2 => D1
+T4 ^ L1 ^ M1 ^ N2 ^ P3 ^ V5 => D1
 T3 ^ L2 ^ M4 ^ N9 ^ P7 ^ V3 => D2
 T3 ^ L2 ^ M4 ^ N9 ^ P7 ^ V1 => D2
 T13 ^ L8 ^ M2 ^ N2 ^ P5 ^ V3 => D3
