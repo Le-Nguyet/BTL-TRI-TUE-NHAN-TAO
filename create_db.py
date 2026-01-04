@@ -3,16 +3,20 @@ from tkinter import filedialog, messagebox, ttk, scrolledtext
 import pandas as pd
 import sqlite3
 import os
+import re
+# Import MAPPER để giải mã các ký hiệu T1, L1, M1... 
+from src.logic.knowledge_base import MAPPER 
 
 # --- CẤU HÌNH ĐƯỜNG DẪN ---
 DB_PATH = os.path.join("data", "monan.db")
+RULES_FILE = "raw_rules.txt"
 if not os.path.exists("data"): os.makedirs("data")
 
 class KnowledgeManager:
     def __init__(self, root):
         self.root = root
         self.root.title("Hệ Thống Quản Trị Tri Thức Đặc Sản Miền Tây")
-        # SỬA LỖI: Định dạng chuẩn 1100x750 (không có dấu chấm)
+        # Sửa lỗi định dạng geometry 
         self.root.geometry("1100x750") 
         self.root.configure(bg="#f4f7f6")
         
@@ -23,7 +27,7 @@ class KnowledgeManager:
 
     def init_db_structure(self):
         cursor = self.conn.cursor()
-        # Đảm bảo cấu trúc bảng chuẩn: mo_ta (8) và image_path (9)
+        # Đảm bảo cấu trúc bảng chuẩn: mo_ta (8) và image_path (9) 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS products (
                 id TEXT PRIMARY KEY, ten TEXT, loai TEXT, vi TEXT, tinh TEXT, 
@@ -55,6 +59,8 @@ class KnowledgeManager:
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
 
+        # Thêm nút ĐỒNG BỘ TỪ LUẬT (Tích hợp từ convert_rules.py)
+        tk.Button(left_frame, text="🔄 ĐỒNG BỘ TỪ TẬP LUẬT", bg="#e67e22", fg="white", font=("Arial", 9, "bold"), command=self.sync_from_rules).pack(fill="x", padx=10, pady=5)
         tk.Button(left_frame, text="🗑️ XÓA MÓN ĐANG CHỌN", bg="#e74c3c", fg="white", font=("Arial", 9, "bold"), command=self.delete_item).pack(fill="x", padx=10, pady=5)
         
         # --- PHẦN BÊN PHẢI: CHI TIẾT & CHỈNH SỬA ---
@@ -86,6 +92,47 @@ class KnowledgeManager:
 
         right_frame.columnconfigure(1, weight=1)
 
+    # --- HÀM ĐỒNG BỘ TÍCH HỢP TỪ CONVERT_RULES.PY --- 
+    def sync_from_rules(self):
+        if not os.path.exists(RULES_FILE):
+            return messagebox.showerror("Lỗi", "Không tìm thấy file raw_rules.txt")
+
+        try:
+            data_map = {}
+            # Regex giải mã tập luật 
+            pattern = r"(T\d+).*?(L\d+).*?(M\d+).*?(N\d+).*?(P\d+).*?(V\d+).*?=>\s*(D\d+)"
+            
+            with open(RULES_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    match = re.search(pattern, line)
+                    if match:
+                        t, l, m, n, p, v, d_id = match.groups()
+                        if d_id not in data_map:
+                            data_map[d_id] = {"tinh": set(), "loai": set(), "mua": set(), "nlc": set(), "nlp": set(), "vi": set()}
+                        
+                        # Ánh xạ tri thức 
+                        for code, key in zip([t, l, m, n, p, v], ["tinh", "loai", "mua", "nlc", "nlp", "vi"]):
+                            if code in MAPPER: data_map[d_id][key].add(MAPPER[code])
+
+            cursor = self.conn.cursor()
+            for d_id, fields in data_map.items():
+                # Chuẩn hóa dữ liệu sang chuỗi 
+                update_vals = {k: ", ".join(sorted(list(v))) for k, v in fields.items()}
+                
+                # Thực hiện cập nhật vào database 
+                cursor.execute("""
+                    UPDATE products 
+                    SET tinh = ?, loai = ?, mua = ?, nlc = ?, nlp = ?, vi = ?
+                    WHERE id = ?
+                """, (update_vals['tinh'], update_vals['loai'], update_vals['mua'], 
+                      update_vals['nlc'], update_vals['nlp'], update_vals['vi'], d_id))
+            
+            self.conn.commit()
+            self.load_data()
+            messagebox.showinfo("Thành công", f"Đã đồng bộ tri thức cho {len(data_map)} món ăn từ tập luật!")
+        except Exception as e:
+            messagebox.showerror("Lỗi", f"Không thể đồng bộ: {e}")
+
     def load_data(self, filter_text=""):
         for item in self.tree.get_children(): self.tree.delete(item)
         cursor = self.conn.cursor()
@@ -111,7 +158,6 @@ class KnowledgeManager:
         cursor.execute("SELECT * FROM products WHERE id=?", (item_id,))
         data = cursor.fetchone()
         if data:
-
             cols = ["id", "ten", "loai", "vi", "tinh", "mua", "nlc", "nlp", "mo_ta", "image_path"]
             row_dict = dict(zip(cols, data))
             for k, entry in self.inputs.items():
@@ -127,6 +173,7 @@ class KnowledgeManager:
             if not d['id']: return messagebox.showwarning("Lỗi", "Vui lòng nhập ID!")
             
             cursor = self.conn.cursor()
+            # Khóa chặt thứ tự cột để mô tả và ảnh không bị nhảy 
             cursor.execute("""
                 INSERT OR REPLACE INTO products (id, ten, loai, vi, tinh, mua, nlc, nlp, mo_ta, image_path)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
