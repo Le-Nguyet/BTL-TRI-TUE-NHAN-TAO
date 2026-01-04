@@ -126,11 +126,11 @@ class ResultPanel(QWidget):
 
         # --- BÊN TRÁI: HÌNH ẢNH ---
         left_widget = QWidget()
-        left_widget.setFixedWidth(500) # Điều chỉnh lại độ rộng cho cân đối
+        left_widget.setFixedWidth(600) # Điều chỉnh lại độ rộng cho cân đối
         left_lay = QVBoxLayout(left_widget)
         
         img_label = QLabel()
-        img_label.setFixedSize(480, 360) # Kích thước ảnh chuẩn 4:3
+        img_label.setFixedSize(600, 520) # Kích thước ảnh chuẩn 4:3
         img_label.setScaledContents(True)
         img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEEEEE; background-color: #f0f0f0;")
 
