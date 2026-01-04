@@ -126,21 +126,46 @@ class ResultPanel(QWidget):
 
         # --- BÊN TRÁI: HÌNH ẢNH ---
         left_widget = QWidget()
-        left_widget.setFixedWidth(600)
+        left_widget.setFixedWidth(500) # Điều chỉnh lại độ rộng cho cân đối
         left_lay = QVBoxLayout(left_widget)
+        
         img_label = QLabel()
-        img_label.setFixedSize(600, 450)
+        img_label.setFixedSize(480, 360) # Kích thước ảnh chuẩn 4:3
         img_label.setScaledContents(True)
-        img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEEEEE;")
+        img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEEEEE; background-color: #f0f0f0;")
 
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        img_path = os.path.normpath(os.path.join(base_dir, "assets", "images", mon.get('image_path', 'default.png')))
+        # --- XỬ LÝ ĐƯỜNG DẪN ẢNH CHUẨN ---
+        # Lấy thư mục gốc của dự án (Project Root) dựa trên vị trí file main.py
+        import os
+        # Đường dẫn từ file hiện tại (src/ui/result_panel.py) lên 2 cấp để ra gốc dự án
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        
+        # Tên file ảnh từ database (nếu rỗng thì dùng default.png) 
+        file_name = mon.get('image_path')
+        if not file_name or str(file_name).strip() == "" or file_name == "None":
+            file_name = "default.png"
+            
+        img_path = os.path.join(base_dir, "assets", "images", file_name)
+        img_path = os.path.normpath(img_path)
+
+        # Kiểm tra và load ảnh
         pixmap = QPixmap(img_path)
-        if not pixmap.isNull(): img_label.setPixmap(pixmap)
+        if pixmap.isNull():
+            print(f"⚠️ Cảnh báo: Không tìm thấy ảnh tại: {img_path}")
+            # Thử tìm ảnh default nếu ảnh chính lỗi
+            default_path = os.path.join(base_dir, "assets", "images", "default.png")
+            pixmap = QPixmap(default_path)
+            if pixmap.isNull():
+                img_label.setText("❌ Không có ảnh")
+            else:
+                img_label.setPixmap(pixmap)
+        else:
+            img_label.setPixmap(pixmap)
 
         name_label = QLabel(mon['ten'].upper())
-        name_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #E91E63; margin-top: 10px;")
+        name_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #E91E63; margin-top: 10px;")
         name_label.setAlignment(Qt.AlignCenter)
+        
         left_lay.addWidget(img_label)
         left_lay.addWidget(name_label)
 
