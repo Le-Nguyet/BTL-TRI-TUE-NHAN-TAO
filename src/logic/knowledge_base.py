@@ -2,30 +2,26 @@ import sqlite3
 import os
 
 # Đường dẫn đến file db
-base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DB_PATH = os.path.join(base_dir, "data", "monan.db")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(base_dir)), "data", "monan.db")
 
 def get_data_from_db():
-    """Hàm tự động lấy toàn bộ tri thức từ Database"""
-    if not os.path.exists(DB_PATH):
-        return []
-    
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row 
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM products")
-    rows = cursor.fetchall()
-    
-    data = []
-    for row in rows:
-        item = dict(row)
-        # Chuyển chuỗi Vị "Chua, Ngọt" thành List ["Chua", "Ngọt"]
-        if isinstance(item['vi'], str):
-            item['vi'] = [v.strip() for v in item['vi'].split(',')]
-        data.append(item)
-    
-    conn.close()
-    return data
+    """Lấy dữ liệu và sắp xếp theo số ID (D1, D2, D3...)"""
+    if not os.path.exists(DB_PATH): return []
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row 
+        cursor = conn.cursor()
+        # Sắp xếp theo số sau chữ D
+        cursor.execute("SELECT * FROM products ORDER BY CAST(SUBSTR(id, 2) AS INTEGER) ASC")
+        rows = cursor.fetchall()
+        data = [dict(row) for row in rows]
+        for item in data:
+            if isinstance(item.get('vi'), str):
+                item['vi'] = [v.strip() for v in item['vi'].split(',')]
+        conn.close()
+        return data
+    except: return []
 
 # Tri thức tĩnh
 MAPPER = {

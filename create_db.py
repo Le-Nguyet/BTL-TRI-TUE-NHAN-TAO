@@ -3,9 +3,19 @@ from tkinter import filedialog, messagebox, ttk, scrolledtext
 import pandas as pd
 import sqlite3
 import os
+import re
+
+# Import MAPPER từ file knowledge_base để giải mã các ký hiệu T, L, M, N, P, V
+# Đảm bảo cấu trúc thư mục của bạn cho phép import này
+try:
+    from src.logic.knowledge_base import MAPPER
+except ImportError:
+    # Nếu chưa có file knowledge_base, bạn có thể định nghĩa tạm MAPPER ở đây
+    MAPPER = {}
 
 # --- CẤU HÌNH ĐƯỜNG DẪN ---
 DB_PATH = os.path.join("data", "monan.db")
+RULES_FILE = "raw_rules.txt"
 if not os.path.exists("data"): os.makedirs("data")
 
 class KnowledgeManager:
@@ -44,7 +54,7 @@ class KnowledgeManager:
         # Ô nhập tìm kiếm
         self.ent_search = tk.Entry(left_frame, font=("Arial", 11), bd=1, relief="solid")
         self.ent_search.pack(fill="x", padx=10, pady=5)
-        self.ent_search.bind("<KeyRelease>", self.on_search_change) # Tự động lọc khi gõ chữ
+        self.ent_search.bind("<KeyRelease>", self.on_search_change) 
 
         # Bảng hiển thị
         self.tree = ttk.Treeview(left_frame, columns=("ID", "Ten"), show="headings", selectmode="browse")
@@ -55,8 +65,11 @@ class KnowledgeManager:
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
 
-        # Nút xóa
-        tk.Button(left_frame, text="🗑️ XÓA MÓN ĐANG CHỌN", bg="#e74c3c", fg="white", font=("Arial", 9, "bold"), command=self.delete_item).pack(fill="x", padx=10, pady=10)
+        # Cụm nút công cụ bên trái
+        tk.Button(left_frame, text="🗑️ XÓA MÓN ĐANG CHỌN", bg="#e74c3c", fg="white", font=("Arial", 9, "bold"), command=self.delete_item).pack(fill="x", padx=10, pady=5)
+        
+        # --- NÚT ĐỒNG BỘ TRI THỨC ---
+        tk.Button(left_frame, text="🔄 ĐỒNG BỘ TỪ LUẬT", bg="#e67e22", fg="white", font=("Arial", 9, "bold"), command=self.sync_from_rules).pack(fill="x", padx=10, pady=5)
 
         # --- PHẦN BÊN PHẢI: CHI TIẾT & CHỈNH SỬA ---
         right_frame = tk.LabelFrame(self.root, text=" THÔNG TIN CHI TIẾT MÓN ĂN ", bg="white", padx=20, pady=10, font=("Arial", 11, "bold"))
@@ -89,11 +102,8 @@ class KnowledgeManager:
         right_frame.columnconfigure(1, weight=1)
 
     def load_data(self, filter_text=""):
-        """Tải dữ liệu có lọc và sắp xếp theo ID số"""
         for item in self.tree.get_children(): self.tree.delete(item)
         cursor = self.conn.cursor()
-        
-        # SQL sắp xếp số: cắt chữ 'D' và chuyển sang Integer
         base_query = "SELECT id, ten FROM products"
         if filter_text:
             query = f"{base_query} WHERE ten LIKE ? OR id LIKE ? ORDER BY CAST(SUBSTR(id, 2) AS INTEGER) ASC"
@@ -106,7 +116,6 @@ class KnowledgeManager:
             self.tree.insert("", "end", values=row)
 
     def on_search_change(self, event):
-        """Hàm xử lý khi người dùng gõ vào ô tìm kiếm"""
         self.load_data(self.ent_search.get())
 
     def on_select(self, event):
@@ -121,9 +130,9 @@ class KnowledgeManager:
             row_dict = dict(zip(cols, data))
             for k, entry in self.inputs.items():
                 entry.delete(0, tk.END)
-                entry.insert(0, str(row_dict[k]))
+                entry.insert(0, str(row_dict[k]) if row_dict[k] is not None else "")
             self.txt_mo_ta.delete("1.0", tk.END)
-            self.txt_mo_ta.insert(tk.END, row_dict["mo_ta"])
+            self.txt_mo_ta.insert(tk.END, str(row_dict["mo_ta"]) if row_dict["mo_ta"] is not None else "")
 
     def update_item(self):
         try:
@@ -147,6 +156,58 @@ class KnowledgeManager:
             self.conn.execute("DELETE FROM products WHERE id=?", (item_id,))
             self.conn.commit()
             self.load_data(); self.ent_search.delete(0, tk.END)
+
+    def sync_from_rules(self):
+        if not os.path.exists(RULES_FILE):
+            return messagebox.showerror("Lỗi", "Không tìm thấy file raw_rules.txt")
+
+        try:
+            from src.logic.knowledge_base import MAPPER
+            data_map = {}
+            # Regex linh hoạt hơn để tránh lỗi dấu cách
+            pattern = r"(T\d+).*?(L\d+).*?(M\d+).*?(N\d+).*?(P\d+).*?(V\d+).*?=>\s*(D\d+)"
+            
+            with open(RULES_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    match = re.search(pattern, line)
+                    if match:
+                        t, l, m, n, p, v, d_id = match.groups()
+                        if d_id not in data_map:
+                            data_map[d_id] = {k: set() for k in ['tinh','loai','mua','nlc','nlp','vi']}
+                        
+                        for code, key in zip([t,l,m,n,p,v], ['tinh','loai','mua','nlc','nlp','vi']):
+                            if code in MAPPER: 
+                                data_map[d_id][key].add(MAPPER[code])
+
+            cursor = self.conn.cursor()
+            update_count = 0
+            for d_id, fields in data_map.items():
+                vals = {k: ", ".join(sorted(list(v))) for k, v in fields.items()}
+                
+                # SỬ DỤNG LỆNH CẬP NHẬT THÔNG MINH:
+                # Nếu món chưa có (ID mới), nó sẽ tạo dòng mới với tên "Món mới (Chờ cập nhật)"
+                cursor.execute("SELECT ten FROM products WHERE id=?", (d_id,))
+                exists = cursor.fetchone()
+                
+                if exists:
+                    cursor.execute("""
+                        UPDATE products SET tinh=?, loai=?, mua=?, nlc=?, nlp=?, vi=? WHERE id=?
+                    """, (vals['tinh'], vals['loai'], vals['mua'], vals['nlc'], vals['nlp'], vals['vi'], d_id))
+                else:
+                    # Tự động thêm món mới nếu trong luật có mà DB chưa có
+                    cursor.execute("""
+                        INSERT INTO products (id, ten, tinh, loai, mua, nlc, nlp, vi, mo_ta) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (d_id, f"Món mới {d_id}", vals['tinh'], vals['loai'], vals['mua'], vals['nlc'], vals['nlp'], vals['vi'], "Chưa có mô tả"))
+                
+                update_count += 1
+            
+            self.conn.commit()
+            self.load_data()
+            messagebox.showinfo("Thành công", f"Đã đồng bộ toàn bộ {update_count} món ăn từ tập luật!")
+            
+        except Exception as e:
+            messagebox.showerror("Lỗi hệ thống", f"Lỗi: {str(e)}")
 
     def import_csv(self):
         path = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
