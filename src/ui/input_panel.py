@@ -10,7 +10,7 @@ class InputPanel(QWidget):
         super().__init__()
         self.setStyleSheet("background-color: #F8F9F9;") 
         
-        # Layout chính của toàn bộ Panel (Dọc)
+        # Layout chính của toàn bộ Panel 
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(20, 10, 20, 10)
 
@@ -127,7 +127,7 @@ class InputPanel(QWidget):
         f_lay.addWidget(QLabel("<b>🌿 BƯỚC 5: NGUYÊN LIỆU PHỤ <font color='red'>*</font></b>"))
         self.combo_nlp = QComboBox()
         self.combo_nlp.addItems(["Tất cả", "Sen", "Mắm", "Bông điên điển", "Lá chúc", 
-                                 "Rau đắng", "Nước cốt dừa", "Rau củ quả", "Chao", " Lá giang"])
+                                 "Rau đắng", "Nước cốt dừa", "Rau củ quả", "Chao", " á giang", "Dầu mè"])
         f_lay.addWidget(self.combo_nlp)
 
         # BƯỚC 6: CHỌN KHẨU VỊ
