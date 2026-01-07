@@ -27,8 +27,8 @@ def get_data_from_db():
 MAPPER = {
     'T1': 'Long An', 'T2': 'Tiền Giang','T3': 'Đồng Tháp', 'T4': 'An Giang', 'T5': 'Vĩnh Long', 'T6': 'Trà Vinh', 'T7': 'Bến Tre', 'T8': 'Cà Mau', 'T9': 'Kiên Giang', 'T10': 'Cần Thơ', 'T11': 'Hậu Giang', 'T12': 'Bạc Liêu',  'T13': 'Sóc Trăng',
     'L1': 'Món nước', 'L2': 'Món khô', 'L4': 'Món gỏi', 'L7': 'Món hấp', 'L8': 'Món lẩu', 'L9': 'Món cháo', 'L10': 'Món bánh',
-    'M1': 'Mùa nước nổi', 'M2': 'Mùa mưa', 'M3': 'Mùa khô', 'M4': 'Mùa Tết', 'M5': 'Mùa trái cây', 'M6':'Quanh năm',
+    'M1': 'Mùa nước nổi', 'M2': 'Mùa mưa', 'M3': 'Mùa khô', 'M4': 'Mùa tết', 'M5': 'Mùa trái cây', 'M6':'Quanh năm',
     'N1': 'Hải sản', 'N2': 'Cá', 'N3': 'Bún', 'N5': 'Bánh tằm', 'N6': 'Bột', 'N7': 'Nếp','N8': 'Gạo','N9': 'Thịt', 'N10': 'Trứng', 'N11': 'Trái cây',
-    'P0': 'Tất cả','P1': 'Sen', 'P2': 'Mắm', 'P3': 'Bông điên điển', 'P5': 'Rau đắng', 'P6': 'Nước cốt dừa', 'P7': 'Rau củ quả', 'P8': 'Chao', 'P9': 'Dầu mè', 'P10': ' Tất cả',
+    'P1': 'Sen', 'P2': 'Mắm', 'P3': 'Bông điên điển', 'P4': 'Lá chúc', 'P5': 'Rau đắng', 'P6': 'Nước cốt dừa', 'P7': 'Rau củ quả', 'P8': 'Chao', 'P9': 'Dầu mè', 'P10': 'Lá giang', 'P11': 'Tất cả',
     'V1': 'Cay', 'V2': 'Ngọt', 'V3': 'Chua', 'V4': 'Mặn', 'V5': 'Béo', 'V6': 'Đắng'
 }
