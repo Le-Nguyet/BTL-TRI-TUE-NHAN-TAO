@@ -204,17 +204,34 @@ class InputPanel(QWidget):
         if not selected_loai:
             QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 Loại món ăn ở Bước 3!")
             return
-
-        # 4. Kiểm tra Nguyên liệu chính
-        if self.combo_nlc.currentText() == "Tất cả":
+        
+        # Lấy giá trị từ ComboBox
+        nlc = self.combo_nlc.currentText()
+        nlp_text = self.combo_nlp.currentText()
+        # Kiểm tra Nguyên liệu chính
+        if nlc == "Tất cả":
             QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn Nguyên liệu chính ở Bước 4!")
             return
 
-        # 5. Kiểm tra Nguyên liệu phụ
-        if self.combo_nlp.currentText() == "Tất cả":
-            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn Nguyên liệu phụ ở Bước 5!")
+        # LOGIC MỚI: Chỉ bắt lỗi Bỏ qua nếu KHÔNG PHẢI là Trái cây
+        # Nếu chọn Trái cây, nlp có thể là "Bỏ qua"
+        if nlc != "Trái cây" and (nlp_text == "Tất cả" or "Bỏ qua" in nlp_text):
+            QMessageBox.warning(self, "Thông báo", "⚠️ Món này cần chọn thêm Nguyên liệu phụ ở Bước 5!")
             return
 
+        # Kiểm tra Khẩu vị
+        selected_vi_btn = self.group_vi.checkedButton()
+        if not selected_vi_btn:
+            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 khẩu vị ở Bước 6!")
+            return
+
+        # Chuẩn bị dữ liệu gửi đi
+        flavor_text = selected_vi_btn.text().split(' ')[1] 
+        
+        # Nếu là "Bỏ qua", ta gửi giá trị "Tất cả" để Engine dễ xử lý
+        final_nlp = "Tất cả" if "Bỏ qua" in nlp_text else nlp_text
+
+        
         # 6. Kiểm tra Khẩu vị
         selected_vi_btn = self.group_vi.checkedButton()
         if not selected_vi_btn:
