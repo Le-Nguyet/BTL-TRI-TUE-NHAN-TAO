@@ -190,65 +190,61 @@ class InputPanel(QWidget):
     def _send_data(self):
         """Kiểm tra logic và gửi dữ liệu đi để suy diễn"""
         
-        # 1. Kiểm tra Tỉnh thành (Bước 1)
-        # (Tỉnh thành thường được lưu trong biến self.selected_tinh từ widget bản đồ)
-        if self.selected_tinh == "Tất cả":
-            # Nếu bạn muốn bắt buộc chọn tỉnh thì dùng cảnh báo này, 
-            # còn nếu cho phép tìm toàn miền Tây thì có thể bỏ qua.
-            pass
+        # 1. Kiểm tra Bước 1: Tỉnh thành
+        if not hasattr(self, 'selected_tinh') or self.selected_tinh == "Tất cả":
+            QMessageBox.warning(self, "Thông báo", "⚠️ Bước 1: Vui lòng chọn một tỉnh trên bản đồ!")
+            return
 
-        # 2. Kiểm tra Mùa (Bước 2)
+        # 2. Kiểm tra Bước 2: Mùa
         selected_mua = self.group_mua.checkedButton()
         if not selected_mua:
-            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 mùa ở Bước 2!")
+            QMessageBox.warning(self, "Thông báo", "⚠️ Bước 2: Bạn chưa chọn Mùa!")
             return
         
-        # 3. Kiểm tra Loại món ăn (Bước 3)
+        # 3. Kiểm tra Bước 3: Loại món ăn
         selected_loai = self.group_loai.checkedButton()
         if not selected_loai:
-            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 Loại món ăn ở Bước 3!")
+            QMessageBox.warning(self, "Thông báo", "⚠️ Bước 3: Bạn chưa chọn Loại món ăn!")
             return
 
-        # 4. Lấy dữ liệu Nguyên liệu (Bước 4 & 5)
-        nlc_text = self.combo_nlc.currentText()
-        nlp_text = self.combo_nlp.currentText()
-
-        # Kiểm tra Nguyên liệu chính bắt buộc
+        # 4. Kiểm tra Bước 4: Nguyên liệu chính
+        nlc_text = self.combo_nlc.currentText().strip()
         if nlc_text == "Tất cả":
-            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn Nguyên liệu chính ở Bước 4!")
+            QMessageBox.warning(self, "Thông báo", "⚠️ Bước 4: Vui lòng chọn Nguyên liệu chính!")
             return
 
-        # --- LOGIC QUAN TRỌNG CHO TRÁI CÂY ---
-        # Nếu chọn Trái cây -> Nguyên liệu phụ có thể là "Bỏ qua" hoặc "Tất cả"
-        # Nếu chọn món khác (Cá, Thịt...) -> Bắt buộc phải chọn Nguyên liệu phụ cụ thể
-        is_trai_cay = (nlc_text == "Trái cây")
-        is_nlp_skipped = (nlp_text == "--- Bỏ qua / Tùy chọn ---" or nlp_text == "Tất cả")
-
-        if not is_trai_cay and is_nlp_skipped:
-            QMessageBox.warning(self, "Thông báo", "⚠️ Món này cần chọn thêm Nguyên liệu phụ ở Bước 5!")
+        # 5. Kiểm tra Bước 5: Nguyên liệu phụ (RÀNG BUỘC MỚI)
+        nlp_text = self.combo_nlp.currentText().strip()
+        
+        # Logic: Nếu NLC khác "Trái cây" mà NLP lại chọn "Tất cả" -> Báo lỗi
+        if nlc_text != "Trái cây" and nlp_text == "Tất cả":
+            QMessageBox.warning(self, "Thông báo", f"⚠️ Với nguyên liệu chính là '{nlc_text}', bạn bắt buộc phải chọn một Nguyên liệu phụ cụ thể ở Bước 5!")
             return
 
-        # 5. Kiểm tra Khẩu vị (Bước 6)
+        # --- ĐỒNG BỘ HÓA CHO TRÁI CÂY (D63) ---
+        # Nếu là Trái cây, ép NLP về "Tất cả" để khớp với mã P11 trong file luật
+        if nlc_text == "Trái cây":
+            final_nlp = "Tất cả"
+        else:
+            final_nlp = nlp_text
+
+        # 6. Kiểm tra Bước 6: Khẩu vị
         selected_vi_btn = self.group_vi.checkedButton()
         if not selected_vi_btn:
-            QMessageBox.warning(self, "Thông báo", "⚠️ Vui lòng chọn 1 khẩu vị ở Bước 6!")
+            QMessageBox.warning(self, "Thông báo", "⚠️ Bước 6: Bạn chưa chọn Khẩu vị!")
             return
 
-        # 6. CHUẨN HÓA DỮ LIỆU GỬI ĐI
-        # Tách lấy tên vị (Ví dụ: "🌶️ Cay" -> "Cay")
-        flavor_text = selected_vi_btn.text().split(' ')[1] if ' ' in selected_vi_btn.text() else selected_vi_btn.text()
-        
-        # Nếu người dùng chọn "Bỏ qua", ta gửi chuỗi "Tất cả" xuống Engine 
-        # để khớp với logic (criteria.get('nlp') == "Tất cả") trong inference_engine.py
-        final_nlp = "Tất cả" if is_nlp_skipped else nlp_text
+        # 7. CHUẨN HÓA DỮ LIỆU GỬI ĐI
+        raw_vi_text = selected_vi_btn.text()
+        flavor_text = raw_vi_text.split(' ')[1] if ' ' in raw_vi_text else raw_vi_text
 
         data = {
-            "tinh": self.selected_tinh, 
-            "mua": selected_mua.text(),
-            "loai": selected_loai.text(),
+            "tinh": self.selected_tinh.strip(), 
+            "mua": selected_mua.text().strip(),
+            "loai": selected_loai.text().strip(),
             "nlc": nlc_text, 
             "nlp": final_nlp, 
-            "vi": [flavor_text]
+            "vi": [flavor_text.strip()]
         }
 
         # Phát tín hiệu gửi dữ liệu sang MainWindow
