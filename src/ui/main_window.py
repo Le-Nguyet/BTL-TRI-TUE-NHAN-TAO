@@ -200,26 +200,42 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Điều khoản", "Ứng dụng phục vụ mục đích học tập và tham khảo văn hóa ẩm thực.")
 
     def _on_data_submitted(self, criteria):
-        """Thực hiện suy diễn tri thức và hiển thị kết quả"""
+        """Thực hiện suy diễn tri thức và điều hướng màn hình theo yêu cầu"""
         self.stack.setCurrentWidget(self.result_p)
         self.result_p.clear_results()
         
-        # Lấy dữ liệu mới nhất từ Database và thực hiện suy diễn
+        # Lấy dữ liệu từ Database và thực hiện suy diễn
         results = infer_dishes(criteria, None)
         
+        # Ngắt kết nối cũ của nút quay lại 
+        try:
+            self.result_p.btn_back.clicked.disconnect()
+        except:
+            pass
+        
         if results:
+            # --- TRƯỜNG HỢP CÓ KẾT QUẢ ---
             self.result_p.show_dishes(results)
+            
+            # Gán chức năng cho nút quay lại
+            self.result_p.btn_back.clicked.connect(self._reset_and_go_back)
         else:
-            # Thông báo khi không tìm thấy kết quả
+            # --- TRƯỜNG HỢP KHÔNG CÓ KẾT QUẢ ---
             lb_empty = QLabel("😔 Rất tiếc, hệ thống chưa tìm thấy món ăn phù hợp với yêu cầu của bạn.\nHãy thử thay đổi một vài tiêu chí nhé!")
             lb_empty.setStyleSheet("font-size: 20px; color: #7f8c8d; font-weight: bold; border: none;")
             lb_empty.setAlignment(Qt.AlignCenter)
             
-            # Căn giữa dòng chữ trong vùng kết quả
             self.result_p.res_layout.addStretch()
             self.result_p.res_layout.addWidget(lb_empty)
             self.result_p.res_layout.addStretch()
+            
+            # Gán chức năng cho nút quay lại
+            self.result_p.btn_back.clicked.connect(lambda: self.stack.setCurrentIndex(1))
 
+    def _reset_and_go_back(self):
+        """Hàm hỗ trợ: Xóa sạch lựa chọn ở InputPanel và quay lại"""
+        self.input_p.reset_filters()
+        self.stack.setCurrentIndex(1)
     def keyPressEvent(self, event):
         """Phím tắt F11 toàn màn hình"""
         if event.key() == Qt.Key_F11:

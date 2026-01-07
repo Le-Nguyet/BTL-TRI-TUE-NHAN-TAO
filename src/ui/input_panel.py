@@ -233,3 +233,30 @@ class InputPanel(QWidget):
             "vi": [flavor_text]
         }
         self.submitted.emit(data)
+    
+    def reset_filters(self):
+        """Reset toàn bộ các lựa chọn về trạng thái mặc định bao gồm cả bản đồ"""
+        # 1. Reset biến lưu trữ tỉnh thành và nhãn hiển thị
+        self.selected_tinh = "Tất cả"
+        self.label_tinh.setText("📍 BƯỚC 1: CHỌN TỈNH THÀNH <font color='red'>*</font>")
+        
+        # 2. Reset trạng thái trên bản đồ (MekongDeltaMap)
+        if hasattr(self, 'map_selector'):
+            self.map_selector.selected_province = None 
+            if hasattr(self.map_selector, 'clicked_province'):
+                self.map_selector.clicked_province = None
+            
+            # Quan trọng: Gọi update() để bản đồ vẽ lại 
+            self.map_selector.update() 
+        
+        # 3. Reset các nhóm nút (Mùa, Loại, Vị)
+        for group in [self.group_mua, self.group_loai, self.group_vi]:
+            checked = group.checkedButton()
+            if checked:
+                group.setExclusive(False)
+                checked.setChecked(False)
+                group.setExclusive(True)
+
+        # 4. Reset các ComboBox 
+        self.combo_nlc.setCurrentIndex(0)
+        self.combo_nlp.setCurrentIndex(0)
