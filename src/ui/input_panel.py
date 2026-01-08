@@ -131,7 +131,7 @@ class InputPanel(QWidget):
         f_lay.addWidget(self.combo_nlp)
 
         # BƯỚC 6: CHỌN KHẨU VỊ
-        f_lay.addWidget(QLabel("<b>👅 Bước 6: Chọn khẩu vị <font color='red'>*</font></b>"))
+        f_lay.addWidget(QLabel("<b>👅 Bước 6: CHỌN KHẨU VỊ <font color='red'>*</font></b>"))
         self.group_vi = QButtonGroup(self)
         self.group_vi.setExclusive(True)
         grid_vi = QGridLayout()
