@@ -120,7 +120,7 @@ class InputPanel(QWidget):
         f_lay.addWidget(QLabel("<b>🐟 BƯỚC 4: NGUYÊN LIỆU CHÍNH <font color='red'>*</font></b>"))
         self.combo_nlc = QComboBox()
         self.combo_nlc.addItems(["Tất cả", "Hải sản", "Cá", "Bún", "Hủ tiếu", "Bánh tằm", 
-                                 "Bột", "Nếp", "Gạo", "Thịt", "Trứng", "Trái cây"])
+                                 "Bột", "Nếp", "Gạo", "Thịt", "Trứng", "Trái cây", "Côn trùng"])
         f_lay.addWidget(self.combo_nlc)
 
         # BƯỚC 5: NGUYÊN LIỆU PHỤ
