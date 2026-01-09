@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("HỆ CHUYÊN GIA TƯ VẤN MÓN ĂN")
         
         # Thiết lập kích thước
-        self.resize(1100, 800)
+        self.resize(1024, 700)
         self.showMaximized()
 
         # Ẩn thanh menu bar mặc định

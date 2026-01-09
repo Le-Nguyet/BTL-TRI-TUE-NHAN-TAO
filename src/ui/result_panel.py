@@ -11,7 +11,7 @@ class ResultPanel(QWidget):
         super().__init__()
         self.setStyleSheet("background-color: #F9FBF9;")
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(30, 20, 30, 30)
+        self.layout.setContentsMargins(10, 0, 10, 0)
 
         self.title = QLabel("KẾT QUẢ TƯ VẤN MÓN ĂN ĐẶC SẢN")
         self.title.setStyleSheet("font-size: 28px; font-weight: bold; color: #1B5E20; margin-bottom: 10px;")
@@ -98,16 +98,16 @@ class ResultPanel(QWidget):
         card.setStyleSheet("QFrame { background-color: white; border-radius: 20px; border: 1px solid #D1D1D1; } QFrame:hover { border: 2px solid #2E7D32; }")
 
         main_h_lay = QHBoxLayout(card)
-        main_h_lay.setContentsMargins(20, 20, 20, 20)
-        main_h_lay.setSpacing(30)
+        main_h_lay.setContentsMargins(10, 10, 10, 10)
+        main_h_lay.setSpacing(20)
 
         # --- BÊN TRÁI: HÌNH ẢNH ---
         left_widget = QWidget()
-        left_widget.setFixedWidth(600) # Điều chỉnh lại độ rộng cho cân đối
+        left_widget.setFixedWidth(650) # Điều chỉnh lại độ rộng cho cân đối
         left_lay = QVBoxLayout(left_widget)
         
         img_label = QLabel()
-        img_label.setFixedSize(600, 520) # Kích thước ảnh chuẩn 4:3
+        img_label.setFixedSize(650, 600) # Kích thước ảnh chuẩn 4:3
         img_label.setScaledContents(True)
         img_label.setStyleSheet("border-radius: 10px; border: 1px solid #EEEEEE; background-color: #f0f0f0;")
 
